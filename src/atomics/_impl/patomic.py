@@ -79,7 +79,7 @@ class Patomic:
         path = path.joinpath("_clib")
         possible_paths = sorted(path.glob("*patomic*"))
         if not possible_paths:
-            raise FileNotFoundError("Could not find libpatomic in atomics._clib")
+            raise FileNotFoundError("Could not find patomic lib in atomics._clib")
         path = possible_paths[-1]
         # setup lib
         self._lib = cdll.LoadLibrary(str(path))

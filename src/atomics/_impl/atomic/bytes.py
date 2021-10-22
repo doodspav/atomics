@@ -7,8 +7,16 @@ from typing import Tuple
 
 class AtomicBytes(AtomicBase):
 
-    def __init__(self, buffer_or_width):
+    def __init__(self, *, buffer_or_width):
         super().__init__(buffer_or_width, is_integral=False, is_signed=False)
+
+    @classmethod
+    def from_buffer(cls, buffer):
+        return cls(buffer_or_width=buffer)
+
+    @classmethod
+    def from_width(cls, width: int):
+        return cls(buffer_or_width=width)
 
     def cmpxchg_weak(self, expected: bytes, desired: bytes,
                      succ: MemoryOrder = MemoryOrder.SEQ_CST,

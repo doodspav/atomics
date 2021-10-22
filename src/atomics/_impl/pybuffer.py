@@ -3,20 +3,20 @@ import cffi
 
 class PyBuffer:
 
-    def __init__(self, exporter, *, writeable: bool):
+    def __init__(self, exporter, *, writeable: bool, force: bool = False):
         # check if __init__ has been called
         if hasattr(self, "_ffi"):
             raise ValueError("PyBuffer object can only be initialised once.")
         # check if writeable can be satisfied
         view = memoryview(exporter)
-        if writeable and view.readonly:
+        if writeable and view.readonly and not force:
             raise RuntimeError("Cannot create writeable PyBuffer from readonly exporter.")
         # get and save buffer
         self._ffi = cffi.FFI()
-        self._buf = self._ffi.from_buffer("char[]", exporter, writeable)
+        self._buf = self._ffi.from_buffer("char[]", exporter, not view.readonly)
         self._obj = exporter
         self._len = view.nbytes
-        self._readonly = view.readonly | writeable
+        self._readonly = not writeable
 
     def __del__(self):
         self.release()

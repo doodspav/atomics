@@ -1,4 +1,5 @@
 import enum
+from typing import Optional
 
 
 class MemoryOrder(enum.IntEnum):
@@ -10,15 +11,11 @@ class MemoryOrder(enum.IntEnum):
     ACQ_REL = 4
     SEQ_CST = 5
 
-    _ignore_ = ["_BAD_LOAD_ORDERS", "_BAD_STORE_ORDERS"]
-    _BAD_STORE_ORDERS: (int,) = (ACQUIRE, ACQ_REL)  # ,CONSUME
-    _BAD_LOAD_ORDERS: (int,) = (RELEASE, ACQ_REL)
-
     def is_valid_store_order(self) -> bool:
-        return self.value not in MemoryOrder._BAD_STORE_ORDERS
+        return self.value not in (1, 2, 4)  # CONSUME, ACQUIRE, ACQ_REL
 
     def is_valid_load_order(self) -> bool:
-        return self.value not in MemoryOrder._BAD_LOAD_ORDERS
+        return self.value not in (3, 4)  # RELEASE, ACQ_REL
 
     def is_valid_fail_order(self, succ: "MemoryOrder") -> bool:
         return (self.value <= succ.value) and self.is_valid_load_order()
@@ -26,9 +23,29 @@ class MemoryOrder(enum.IntEnum):
 
 class OpType(enum.IntEnum):
 
-    # base
-    LOAD = enum.auto()
+    def __init__(self, value):
+        fname: str = self.name.lower()
+        # get function name
+        if fname.startswith("bit"):
+            fname = fname[len("bit_"):]
+        fname = "fp_" + fname
+        # get category name
+        cname: Optional[str] = None
+        if "xch" in fname:
+            cname = "xchg_ops"
+        elif "test" in fname:
+            cname = "bitwise_ops"
+        elif fname.endswith(("or", "xor", "and", "not")):
+            cname = "binary_ops"
+        elif fname not in ("fp_store", "fp_load"):
+            cname = "arithmetic_ops"
+        # assign to self
+        self.fname = fname
+        self.cname = cname
+
+    # base (category=None)
     STORE = enum.auto()
+    LOAD = enum.auto()
 
     # xchg
     EXCHANGE = enum.auto()

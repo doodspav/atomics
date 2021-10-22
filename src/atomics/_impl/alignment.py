@@ -39,3 +39,9 @@ class Alignment:
                 return (address + self.width) <= self.size_within
         else:
             return False
+
+    def is_valid(self, address: int, *, using_recommended: bool) -> bool:
+        if using_recommended:
+            return self.is_valid_recommended(address)
+        else:
+            return self.is_valid_minimum(address)

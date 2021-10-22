@@ -1,5 +1,6 @@
 from .exceptions import UnsupportedWidthException
 from .patomic import Patomic
+from .pybuffer import PyBuffer
 
 
 class Alignment:
@@ -22,6 +23,16 @@ class Alignment:
               f"recommended={self.recommended}, minimum=" \
               f"{self.minimum}, size_within={self.size_within})"
         return msg
+
+    @staticmethod
+    def buffer_address(buffer) -> int:
+        try:
+            with memoryview(buffer) as view:
+                return PyBuffer(view, writeable=False).address
+        except TypeError:
+            error_msg = "Positional argument 'buffer' must support the " \
+                        "buffer protocol."
+            raise TypeError(error_msg)
 
     def is_valid_recommended(self, address: int) -> bool:
         if address < 0:

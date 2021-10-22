@@ -17,7 +17,7 @@ class AtomicBase:
             # parse as buffer
             with memoryview(buffer_or_width) as view:
                 self._buffer = PyBuffer(buffer_or_width, writeable=(not view.readonly))
-        except BufferError:
+        except TypeError:
             # parse as width
             if isinstance(buffer_or_width, int):
                 self._buffer = PyBuffer(bytearray(buffer_or_width), writeable=True)

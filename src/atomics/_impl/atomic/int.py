@@ -1,7 +1,7 @@
 from .baseint import AtomicIntegralBase
 
 
-class AtomicSInt(AtomicIntegralBase):
+class AtomicInt(AtomicIntegralBase):
 
     def __init__(self, *, buffer_or_width):
         super().__init__(buffer_or_width, is_signed=True)
@@ -15,7 +15,7 @@ class AtomicSInt(AtomicIntegralBase):
         return cls(buffer_or_width=width)
 
 
-class AtomicUInt(AtomicIntegralBase):
+class AtomicUint(AtomicIntegralBase):
 
     def __init__(self, *, buffer_or_width):
         super().__init__(buffer_or_width, is_signed=False)

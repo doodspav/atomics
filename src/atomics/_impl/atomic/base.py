@@ -24,7 +24,7 @@ class AtomicBase:
             # incompatible type
             else:
                 error_msg = "Positional argument 'buffer_or_width' must either support the " \
-                            "buffer protocol, or be an 'int'."
+                            "buffer protocol, or have type 'int'."
                 raise TypeError(error_msg)
         # check ops are available
         width = len(self._buffer)
@@ -58,6 +58,21 @@ class AtomicBase:
             if op:
                 ots[ot] = op
         return ots
+
+    @staticmethod
+    def _require_int_type(width) -> None:
+        if type(width) is not int:
+            error_msg = "Positional argument 'width' must have type 'int'."
+            raise TypeError(error_msg)
+
+    @staticmethod
+    def _require_buffer_protocol(buffer) -> None:
+        try:
+            with memoryview(buffer):
+                pass
+        except TypeError:
+            error_msg = "Positional argument 'buffer' must support the buffer protocol."
+            raise TypeError(error_msg)
 
     @property
     def _address(self) -> int:

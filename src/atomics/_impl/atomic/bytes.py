@@ -12,10 +12,12 @@ class AtomicBytes(AtomicBase):
 
     @classmethod
     def from_buffer(cls, buffer):
+        cls._require_buffer_protocol(buffer)
         return cls(buffer_or_width=buffer)
 
     @classmethod
     def from_width(cls, width: int):
+        cls._require_int_type(width)
         return cls(buffer_or_width=width)
 
     def cmpxchg_weak(self, expected: bytes, desired: bytes,

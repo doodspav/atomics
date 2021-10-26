@@ -32,7 +32,7 @@ class Alignment:
         except TypeError:
             error_msg = "Positional argument 'buffer' must support the " \
                         "buffer protocol."
-            raise TypeError(error_msg)
+        raise TypeError(error_msg)
 
     def is_valid_recommended(self, address: int) -> bool:
         if address < 0:

@@ -13,6 +13,7 @@ class AtomicBase:
         self._is_integral: bool = is_integral
         self._is_signed: bool = is_signed
         # get buffer
+        error_msg = None
         try:
             # parse as buffer
             with memoryview(buffer_or_width) as view:
@@ -25,7 +26,8 @@ class AtomicBase:
             else:
                 error_msg = "Positional argument 'buffer_or_width' must either support the " \
                             "buffer protocol, or have type 'int'."
-                raise TypeError(error_msg)
+        if error_msg:
+            raise TypeError(error_msg)
         # check ops are available
         width = len(self._buffer)
         p = Patomic()
@@ -69,10 +71,10 @@ class AtomicBase:
     def _require_buffer_protocol(buffer) -> None:
         try:
             with memoryview(buffer):
-                pass
+                return
         except TypeError:
             error_msg = "Positional argument 'buffer' must support the buffer protocol."
-            raise TypeError(error_msg)
+        raise TypeError(error_msg)
 
     @property
     def _address(self) -> int:

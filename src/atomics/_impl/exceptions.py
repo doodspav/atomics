@@ -13,6 +13,11 @@ class AlignmentError(Exception):
                   f"on objects with a width of {width}."
         super().__init__(message)
 
+    def __repr__(self):
+        r = f"{self.__class__.__name__}(width={self.width}, address={self.address}" \
+            f", using_recommended={self.using_recommended})"
+        return r
+
 
 class MemoryOrderError(Exception):
 
@@ -26,6 +31,11 @@ class MemoryOrderError(Exception):
                   f"{v_type} {optype.name} operation."
         super().__init__(message)
 
+    def __repr__(self):
+        r = f"{self.__class__.__name__}(optype=OpType.{self.optype.name}, order=" \
+            f"MemoryOrder.{self.order.name}, is_fail={self.is_fail})"
+        return r
+
 
 class UnsupportedWidthException(Exception):
 
@@ -36,6 +46,10 @@ class UnsupportedWidthException(Exception):
         message = f"No operations are supported on {r_type}objects with a width " \
                   f"of {width}."
         super().__init__(message)
+
+    def __repr__(self):
+        r = f"{self.__class__.__name__}(width={self.width}, readonly={self.readonly})"
+        return r
 
 
 class UnsupportedOperationException(Exception):
@@ -48,3 +62,8 @@ class UnsupportedOperationException(Exception):
         message = f"Operation {optype.name} is not supported on {r_type}objects " \
                   f"with a width of {width}."
         super().__init__(message)
+
+    def __repr__(self):
+        r = f"{self.__class__.__name__}(optype=OpType.{self.optype.name}, " \
+            f"width={self.width}, readonly={self.readonly})"
+        return r

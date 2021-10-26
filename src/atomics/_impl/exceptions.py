@@ -42,8 +42,8 @@ class UnsupportedWidthException(Exception):
     def __init__(self, width: int, *, readonly: bool):
         self.width: int = width
         self.readonly: bool = readonly
-        r_type = "readonly " if readonly else " "
-        message = f"No operations are supported on {r_type}objects with a width " \
+        r_type = " readonly " if readonly else " "
+        message = f"No operations are supported on{r_type}objects with a width " \
                   f"of {width}."
         super().__init__(message)
 

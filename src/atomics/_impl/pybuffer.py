@@ -6,7 +6,7 @@ class PyBuffer:
     def __init__(self, exporter, *, writeable: bool, force: bool = False):
         # check if __init__ has been called
         if hasattr(self, "_ffi"):
-            raise ValueError("PyBuffer object can only be initialised once.")
+            raise ValueError("PyBuffer object cannot be re-initialised.")
         # check if writeable can be satisfied
         view = memoryview(exporter)
         if writeable and view.readonly and not force:

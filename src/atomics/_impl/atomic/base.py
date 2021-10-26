@@ -10,6 +10,9 @@ from typing import Callable, Dict, Optional, Tuple
 class AtomicBase:
 
     def __init__(self, buffer_or_width, *, is_integral: bool, is_signed: bool):
+        # check if object has been initialised
+        if hasattr(self, "_buffer"):
+            raise ValueError("Atomic object cannot be re-initialised.")
         self._is_integral: bool = is_integral
         self._is_signed: bool = is_signed
         # get buffer

@@ -1,0 +1,2 @@
+[build-system]
+requires = ["GitPython", "cmake>=3.14", "setuptools>=30.3.0", "wheel>=0.25"]

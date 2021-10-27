@@ -45,7 +45,7 @@ class AtomicBase:
         self._supported: Dict[OpType, Callable] = self._get_supported_ops_map()
 
     def __str__(self):
-        msg = f"{self.__class__.__name__}(value={self.load(MemoryOrder.ACQUIRE)}, " \
+        msg = f"{self.__class__.__name__}(value={self.load()}, " \
               f"width={self.width}, readonly={self.readonly})"
         return msg
 

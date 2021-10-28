@@ -10,6 +10,24 @@ externally provided.
 These operations are both thread-safe and
 process-safe, meaning they can be used on shared memory buffers.
 
+## Table of Contents
+<!--ts-->
+* [Atomic](#atomic)
+  * [Construction](#construction)
+  * [Operations](#operations)
+  * [Helpers](#helpers)
+* [Alignment](#alignment)
+* [Exceptions](#exceptions)
+* [Lifetime](#lifetime)
+* [Examples](#examples)
+* [Future Considerations](#future-considerations)
+  * [Migrate from Python to Cython](#migrate-from-python-to-cython)
+  * [Expose more `patomic` options](#expose-more-patomic-options)
+  * [Pass an `Atomic` object to `multiprocessing.Process`](#pass-an-atomic-object-to-multiprocessingprocess)
+* [Building Manually](#building-manually)
+* [Additional Operations and Platform Support](#additional-operations-and-platform-support)
+<!--te-->
+
 ## Atomic
 This package provides the following three classes providing atomic operations:
 - `AtomicBytes`
@@ -118,7 +136,7 @@ This will check that your buffer meets the recommended alignment. Currently, the
 
 TODO
 
-## Example
+## Examples
 
 TODO
 
@@ -157,6 +175,6 @@ If you need a custom build of `patomic` and the above command doesn't provide en
 options for your needs, you can always build it manually by cloning the `patomic` repo
 and using CMake, and then place the resulting shared library file in `src/atomics/_clib`.
 
-## Additional operations and platform support
+## Additional Operations and Platform Support
 All additional operations must be implemented in `patomic` before being exposed
 here. Supporting additional platforms is also done in `patomic`.

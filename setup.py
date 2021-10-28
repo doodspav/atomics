@@ -54,8 +54,6 @@ class BuildPatomicCommand(Command):
             self.dst_dir = pathlib.Path(self.dst_dir).resolve()
         if self.c_compiler in [89, 95]:
             self.c_compiler = 90
-        if self.git_tag is not None:
-            raise RuntimeError(f"Option 'git-tag' (set to: {self.git_tag}) not supported.")
 
     @staticmethod
     def get_patomic_libs(dir_path: pathlib.Path) -> [pathlib.Path]:
@@ -72,7 +70,9 @@ class BuildPatomicCommand(Command):
         assert clone_to.is_dir()
         # clone default branch
         repo = git.Repo.clone_from(url=self.git_url, to_path=str(clone_to))
-        # switch to devel branch if main isn't populated
+        if self.git_tag:
+            repo.git.checkout(self.git_tag)
+        # switch to devel branch if tag or default branch isn't populated
         if not (clone_to / "src").is_dir():
             repo.git.checkout("devel")
 

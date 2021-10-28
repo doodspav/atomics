@@ -20,6 +20,8 @@ process-safe, meaning they can be used on shared memory buffers.
 * [Exceptions](#exceptions)
 * [Lifetime](#lifetime)
 * [Examples](#examples)
+  * [From Width](#from-width)
+  * [From Buffer](#from-buffer)
 * [Future Considerations](#future-considerations)
   * [Migrate from Python to Cython](#migrate-from-python-to-cython)
   * [Expose more `patomic` options](#expose-more-patomic-options)
@@ -71,6 +73,8 @@ All three `Atomic` classes provide may provide the following operations:
 - `exchange`, `cmpxchg_weak`, `cmpxchg_strong`
 - `bit_test`, `bit_test_compl`, `bit_test_set`, `bit_test_reset`
 - `bin_or`, `bin_xor`, `bin_and`, `bin_not`
+
+`AtomicInt` and `AtomicUint` additionally provide:
 - `add`, `sub`, `inc`, `dec`, `not`
 
 **IMPORTANT:**
@@ -93,6 +97,7 @@ in C++'s [std::atomic](https://en.cppreference.com/w/cpp/atomic/atomic).
 - `.width` - the length in bytes of the underlying buffer
 - `.readonly` - whether modifying operations are available
 - `.ops_supported` - list of enum values representing supported operations
+- `.signed` - whether the integer is signed (not available for `AtomicBytes`)
 
 ## MemoryOrder
 The default memory order for all operations is `MemoryOrder.SEQ_CST`. Using this
@@ -147,7 +152,7 @@ simply return `self`.
 
 ## Examples
 
-### Width
+### From Width
 ```python
 from atomics import AtomicInt
 
@@ -158,7 +163,7 @@ print(a.load())  # prints 5
 # a.release() not required since we didn't construct from an external buffer
 ```
 
-### Buffer
+### From Buffer
 ```python
 from atomics import AtomicUint
 from multiprocessing import shared_memory

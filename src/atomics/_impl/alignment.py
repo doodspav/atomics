@@ -51,7 +51,7 @@ class Alignment:
         else:
             return False
 
-    def is_valid(self, address: int, *, using_recommended: bool) -> bool:
+    def is_valid(self, address: int, *, using_recommended: bool = True) -> bool:
         if using_recommended:
             return self.is_valid_recommended(address)
         else:

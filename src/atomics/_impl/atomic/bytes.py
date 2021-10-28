@@ -35,8 +35,8 @@ class AtomicBytes(AtomicBase):
             raise MemoryOrderError(OpType.BIT_TEST, order, is_fail=False)
         return self._impl_bit_test(OpType.BIT_TEST, index, order)
 
-    def bit_test_comp(self, index: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bool:
-        return self._impl_bit_test(OpType.BIT_TEST_COMP, index, order)
+    def bit_test_compl(self, index: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bool:
+        return self._impl_bit_test(OpType.BIT_TEST_COMPL, index, order)
 
     def bit_test_set(self, index: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bool:
         return self._impl_bit_test(OpType.BIT_TEST_SET, index, order)

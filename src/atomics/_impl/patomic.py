@@ -40,7 +40,7 @@ class _OpsExplicitBinary(Structure):
 
 class _OpsExplicitBitwise(Structure):
     _fields_ = [("fp_test", _opsig_explicit_test_t),
-                ("fp_test_comp", _opsig_explicit_test_modify_t),
+                ("fp_test_compl", _opsig_explicit_test_modify_t),
                 ("fp_test_set", _opsig_explicit_test_modify_t),
                 ("fp_test_reset", _opsig_explicit_test_modify_t)]
 

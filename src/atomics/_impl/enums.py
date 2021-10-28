@@ -54,7 +54,7 @@ class OpType(enum.IntEnum):
 
     # bit-wise
     BIT_TEST = enum.auto()
-    BIT_TEST_COMP = enum.auto()
+    BIT_TEST_COMPL = enum.auto()
     BIT_TEST_SET = enum.auto()
     BIT_TEST_RESET = enum.auto()
 

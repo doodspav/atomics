@@ -49,6 +49,15 @@ class AtomicBase:
               f"width={self.width}, readonly={self.readonly})"
         return msg
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release()
+
+    def __del__(self):
+        self.release()
+
     def _get_supported_ops_map(self) -> Dict[OpType, Callable]:
         ots: Dict[OpType, Callable] = {}
         # get available ops
@@ -99,6 +108,9 @@ class AtomicBase:
     @property
     def ops_supported(self) -> [OpType]:
         return sorted(list(self._supported.keys()))
+
+    def release(self) -> None:
+        self._buffer.release()
 
     def store(self, desired: bytes, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
         # check support

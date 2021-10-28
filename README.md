@@ -134,11 +134,50 @@ This will check that your buffer meets the recommended alignment. Currently, the
 
 ## Lifetime
 
-TODO
+The `Atomic` object **MUST NOT** outlive the buffer it acts upon. This is simple
+when constructing from a width (since the buffer will be released in `__del__`),
+but trickier when constructing from an external buffer. The `Atomic` object holds
+an internal reference to the object whose buffer it uses, so it won't outlive
+that object (just potentially its buffer).
+
+To aid in this, `Atomic` classes define `release()`, `__enter__`, and `__exit__`.
+Both `release()` and `__exit__` will release the internal buffer, meaning that the
+`Atomic` object must not be used after either of these is called. `__enter__` will
+simply return `self`.
 
 ## Examples
 
-TODO
+### Width
+```python
+from atomics import AtomicInt
+
+a = AtomicInt.from_width(4)
+a.store(0)
+a.add(5)
+print(a.load())  # prints 5
+# a.release() not required since we didn't construct from an external buffer
+```
+
+### Buffer
+```python
+from atomics import AtomicUint
+from multiprocessing import shared_memory
+
+shmem = shared_memory.SharedMemory(create=True, size=4)
+# .release()
+a = AtomicUint.from_buffer(shmem.buf[:4])
+a.store(0)
+a.add(5)
+print(a.load())  # prints 5
+a.release()  # since an object's destructor is not called in a deterministic fashion
+# .__enter__, .__exit__
+with AtomicUint.from_buffer(shmem.buf[:4]) as a:
+  a.add(5)
+  print(a.load())  # prints 10
+  #  a.__exit__(...) will call a.release() for us
+shmem.close()
+shmem.unlink()
+```
 
 ## Future Considerations
 

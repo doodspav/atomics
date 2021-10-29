@@ -123,8 +123,8 @@ class AtomicBase:
         elif len(desired) != self.width:
             raise ValueError("'desired' bytes object length does not match width")
         # perform operation
-        des_buf = PyBuffer(desired, writeable=False)
-        fp(self._address, des_buf.address, order.value)
+        with PyBuffer(desired, writeable=False) as des_buf:
+            fp(self._address, des_buf.address, order.value)
 
     def load(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bytes:
         # check support
@@ -136,9 +136,9 @@ class AtomicBase:
             raise MemoryOrderError(OpType.LOAD, order, is_fail=False)
         # perform operation
         result = bytes(self.width)
-        res_buf = PyBuffer(result, writeable=True, force=True)
-        # modifying result contents directly is fine (no impl will place it in RO memory)
-        fp(self._address, order.value, res_buf.address)
+        with PyBuffer(result, writeable=True, force=True) as res_buf:
+            # modifying result contents directly is fine (no impl will place it in RO memory)
+            fp(self._address, order.value, res_buf.address)
         return result
 
     def exchange(self, desired: bytes, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bytes:
@@ -151,10 +151,10 @@ class AtomicBase:
             raise ValueError("'desired' bytes object length does not match width")
         # perform operation
         result = bytes(self.width)
-        res_buf = PyBuffer(result, writeable=True, force=True)
-        # modifying result contents directly is fine (no impl will place it in RO memory)
-        des_buf = PyBuffer(desired, writeable=False)
-        fp(self._address, des_buf.address, order.value, res_buf.address)
+        with PyBuffer(result, writeable=True, force=True) as res_buf:
+            # modifying result contents directly is fine (no impl will place it in RO memory)
+            with PyBuffer(desired, writeable=False) as des_buf:
+                fp(self._address, des_buf.address, order.value, res_buf.address)
         return result
 
     def _impl_cmpxchg(self, optype: OpType, expected: bytes, desired: bytes,
@@ -173,11 +173,11 @@ class AtomicBase:
             raise MemoryOrderError(optype, fail, is_fail=True)
         # perform operation
         exp_mut = bytes(expected)  # make a copy so we can modify it
-        exp_buf = PyBuffer(exp_mut, writeable=True, force=True)
         des_mut = bytes(desired)  # make a copy so we can modify it
-        des_buf = PyBuffer(des_mut, writeable=True, force=True)
-        # modifying exp and des contents directly is fine (no impl will place it in RO memory)
-        ok = fp(self._address, exp_buf.address, des_buf.address, succ.value, fail.value)
+        with PyBuffer(exp_mut, writeable=True, force=True) as exp_buf:
+            with PyBuffer(des_mut, writeable=True, force=True) as des_buf:
+                # modifying exp and des contents directly is fine (no impl will place it in RO memory)
+                ok = fp(self._address, exp_buf.address, des_buf.address, succ.value, fail.value)
         return bool(ok), exp_mut
 
     def _impl_bit_test(self, optype: OpType, index: int, order: MemoryOrder) -> bool:
@@ -218,4 +218,9 @@ class AtomicBase:
             args.append(res_buf.address)
         # perform operation
         fp(*args)
+        # release buffers
+        for buf in (val_buf, res_buf):
+            if buf is not None:
+                buf.release()
+        # return
         return result

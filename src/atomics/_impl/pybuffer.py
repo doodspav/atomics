@@ -20,6 +20,12 @@ class PyBuffer:
         self._len = view.nbytes
         self._readonly = not writeable
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release()
+
     def __del__(self):
         self.release()
 

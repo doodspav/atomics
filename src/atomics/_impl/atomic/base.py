@@ -39,7 +39,7 @@ class AtomicBase:
             raise UnsupportedWidthException(width, readonly=self.readonly)
         # check buffer meets alignment requirements
         align = Alignment(width)
-        if not align.is_valid_recommended(self._buffer.address):
+        if not align.is_valid_recommended(self._buffer.obj):
             raise AlignmentError(width, self._buffer.address, using_recommended=True)
         # cache supported ops
         self._supported: Dict[OpType, Callable] = self._get_supported_ops_map()

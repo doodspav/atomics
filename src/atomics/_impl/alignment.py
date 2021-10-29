@@ -9,8 +9,8 @@ class Alignment:
         # check that the width is supported
         p = Patomic()
         ops = p.ops(width)
-        if p.count_nonnull_ops(ops, readonly=True) == 0:
-            raise UnsupportedWidthException(width, readonly=True)
+        if p.count_nonnull_ops(ops, readonly=False) == 0:
+            raise UnsupportedWidthException(width, readonly=False)
         # get alignment info
         align = p.alignment(width)
         self.width: int = width
@@ -24,35 +24,42 @@ class Alignment:
               f"{self.minimum}, size_within={self.size_within})"
         return msg
 
-    @staticmethod
-    def buffer_address(buffer) -> int:
+    def _checked_buffer(self, buffer) -> PyBuffer:
+        # check support for buffer protocol
         try:
-            with memoryview(buffer) as view:
-                return PyBuffer(view, writeable=False).address
+            pybuf = PyBuffer(buffer, writeable=False)
+            # check width
+            if len(pybuf) != self.width:
+                error_msg = "Positional argument 'buffer' does not have" \
+                            f" matching width of {self.width}."
+                raise ValueError(error_msg)
+            # return for use in validation functions
+            return pybuf
         except TypeError:
-            error_msg = "Positional argument 'buffer' must support the " \
-                        "buffer protocol."
+            pass
+        # caught TypeError (raise here instead of within except context)
+        error_msg = "Positional argument 'buffer' must support the " \
+                    "buffer protocol."
         raise TypeError(error_msg)
 
-    def is_valid_recommended(self, address: int) -> bool:
-        if address < 0:
-            raise ValueError("Address is negative")
-        return (address % self.recommended) == 0
-
-    def is_valid_minimum(self, address: int) -> bool:
-        if address < 0:
-            raise ValueError("Address is negative")
-        if (address % self.minimum) == 0:
-            if self.size_within == 0:
-                return True
+    def is_valid(self, buffer, *, using_recommended: bool = True) -> bool:
+        with self._checked_buffer(buffer) as pybuf:
+            # recommended
+            if using_recommended:
+                return (pybuf.address % self.recommended) == 0
+            # minimum
+            elif (pybuf.address % self.minimum) == 0:
+                if self.size_within == 0:
+                    return True
+                else:
+                    address = pybuf.address % self.size_within
+                    return (address + self.width) <= self.size_within
+            # no support
             else:
-                address %= self.size_within
-                return (address + self.width) <= self.size_within
-        else:
-            return False
+                return False
 
-    def is_valid(self, address: int, *, using_recommended: bool = True) -> bool:
-        if using_recommended:
-            return self.is_valid_recommended(address)
-        else:
-            return self.is_valid_minimum(address)
+    def is_valid_recommended(self, buffer) -> bool:
+        return self.is_valid(buffer, using_recommended=True)
+
+    def is_valid_minimum(self, buffer) -> bool:
+        return self.is_valid(buffer, using_recommended=False)

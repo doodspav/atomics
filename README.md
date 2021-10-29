@@ -160,6 +160,7 @@ simply return `self`.
 ```python
 from atomics import AtomicInt
 
+
 a = AtomicInt.from_width(4)
 a.store(0)
 a.add(5)
@@ -172,32 +173,36 @@ print(a.load())  # prints 5
 from atomics import AtomicUint
 from multiprocessing import shared_memory
 
+
 shmem = shared_memory.SharedMemory(create=True, size=4)
-# .release()
+
+# using: .release()
 a = AtomicUint.from_buffer(shmem.buf[:4])
 a.store(0)
 a.add(5)
 print(a.load())  # prints 5
 a.release()  # since an object's destructor is not called in a deterministic fashion
-# .__enter__, .__exit__
+
+# using: .__enter__, .__exit__
 with AtomicUint.from_buffer(shmem.buf[:4]) as a:
   a.add(5)
   print(a.load())  # prints 10
   #  a.__exit__(...) will call a.release() for us
+
 shmem.close()
 shmem.unlink()
 ```
 
 ## Building Manually
 
-The custom command `build_patomic` has been added to `setup.py`. The options for it
-can be found in `setup.py`, and this command can be used to pass build parameters
-to CMake or build a custom version of `patomic`. Doing this requires `cmake >= 3.14`
-and the `GitPython` module (as well as `wheel` and `setuptools`).
+If you need to build a specific version of `patomic`, or need more customisation over
+the build process, the custom command `build_patomic` can be used to build `patomic` 
+before running the normal `build` command. Options this command accepts can be found
+in `setup.py`. This command is run automatically in the default build process.
 
-If you need a custom build of `patomic` and the above command doesn't provide enough
-options for your needs, you can always build it manually by cloning the `patomic` repo
-and using CMake, and then place the resulting shared library file in `src/atomics/_clib`.
+If you need even more build customisation, you can clone `patomic` and manually build
+it using CMake. You must then place the resulting shared library file into
+`src/atomics/_clib`.
 
 ## Additional Operations and Platform Support
 All additional operations must be implemented in `patomic` before being exposed

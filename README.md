@@ -1,7 +1,7 @@
 # atomics
 This library implements a wrapper around the lower level 
 [patomic](https://github.com/doodspav/patomic) C library
-(which is provided as part of this library).
+(which is provided as part of this library, cloned in `setup.py`).
 
 It exposes hardware level lock-free (and address-free) atomic 
 operations on a memory buffer, either internally allocated or 
@@ -22,10 +22,6 @@ process-safe, meaning they can be used on shared memory buffers.
 * [Examples](#examples)
   * [From Width](#from-width)
   * [From Buffer](#from-buffer)
-* [Future Considerations](#future-considerations)
-  * [Migrate from Python to Cython](#migrate-from-python-to-cython)
-  * [Expose more `patomic` options](#expose-more-patomic-options)
-  * [Pass an `Atomic` object to `multiprocessing.Process`](#pass-an-atomic-object-to-multiprocessingprocess)
 * [Building Manually](#building-manually)
 * [Additional Operations and Platform Support](#additional-operations-and-platform-support)
 <!--te-->
@@ -43,12 +39,11 @@ protocol (such as `bytes`, `bytearray`, or `memoryview`), or an `int`.
 If constructed from an object supporting the buffer protocol, the internal buffer
 of the object is interpreted as a `char[]`The length of this array is equivalent
 to `memoryview(obj).nbytes` which is not necessarily `len(obj)`. If the object is
-readonly, then so will the `Atomic` class.
+readonly, then the `Atomic` class will also be readonly.
 
 If constructed from an `int` object, an internal suitably aligned buffer will be
 allocated with a width of that object. The internal buffer will be allocated in
-process-local memory. An `Atomic` class constructed like this is ideal for
-situations requiring only thread-safe operations.
+process-local memory.
 
 The available constructors for all `Atomic` classes are listed below (using 
 `__init__` directly is not recommended, for readability reasons).
@@ -123,13 +118,22 @@ The check can be performed like this:
 from atomics import Alignment
 
 buffer = bytes(8)
-address = Alignment.buffer_address(buffer)
 align = Alignment(len(buffer))
-assert align.is_valid(address)
+assert align.is_valid(buffer)
 ```
 
 This will check that your buffer meets the recommended alignment. Currently, the
-`Atomic` classes don't support the use of the `minimum` alignment.
+`Atomic` classes don't provide a way to make use of the `minimum` alignment.
+
+The following attributes are available on `Alignment`:
+- `width`
+- `recommended`
+- `minimum`
+- `size_within`
+
+Their usage isn't elaborated on here since it isn't expected to be necessary
+to access them directly. Details on what these represent can be found 
+[here](https://github.com/doodspav/patomic/blob/devel/include/patomic/types/align.h).
 
 ## Exceptions
 - `AlignmentError` - buffer doesn't meet alignment requirements
@@ -183,30 +187,6 @@ with AtomicUint.from_buffer(shmem.buf[:4]) as a:
 shmem.close()
 shmem.unlink()
 ```
-
-## Future Considerations
-
-### Migrate from Python to Cython
-This library is technically compatible with any Python implementation which
-properly supports `cffi`. In practice, that's only CPython and PyPy. A small
-benchmark also showed that the Python implementation of `AtomicInt` is up to
-100x slower than `int`, but over 2x faster when implemented in Cython.
-
-Given these facts, an implementation in Cython would be a significant improvement.
-The only downside may be that implementing other features from this section in
-Cython may be harder than in Python.
-
-### Expose more `patomic` options
-This includes things like choosing an implementation, and allowing the use of 
-`minimum` alignment requirement.
-
-### Pass an `Atomic` object to `multiprocessing.Process`
-It would be convenient to be able to pass an `Atomic` object to a new process,
-and keep using it there, as is possible with process-safe locks.
-
-Implementing this has many obstacles, such as implementing a copy-constructor for
-`Atomic` classes (which currently does not exist). Currently, I think this is very
-unlikely to happen, and a bad idea, but there's always a chance it happens.
 
 ## Building Manually
 

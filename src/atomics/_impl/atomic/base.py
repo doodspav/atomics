@@ -110,7 +110,8 @@ class AtomicBase:
         return sorted(list(self._supported.keys()))
 
     def release(self) -> None:
-        self._buffer.release()
+        if hasattr(self, "_buffer"):
+            self._buffer.release()
 
     def store(self, desired: bytes, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
         # check support

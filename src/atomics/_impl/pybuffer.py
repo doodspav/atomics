@@ -36,7 +36,7 @@ class PyBuffer:
             raise ValueError("Operation forbidden on released PyBuffer object.")
 
     def release(self) -> None:
-        if self._buf is not None:
+        if hasattr(self, "_buf") and self._buf is not None:
             ffi.release(self._buf)
             self._buf = None
             self._obj = None

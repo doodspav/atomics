@@ -70,7 +70,7 @@ All three `Atomic` classes provide may provide the following operations:
 - `bin_or`, `bin_xor`, `bin_and`, `bin_not`
 
 `AtomicInt` and `AtomicUint` additionally provide:
-- `add`, `sub`, `inc`, `dec`, `not`
+- `add`, `sub`, `inc`, `dec`, `neg`
 
 **IMPORTANT:**
 

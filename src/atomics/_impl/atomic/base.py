@@ -188,7 +188,7 @@ class AtomicBase:
         if fp is None:
             raise UnsupportedOperationException(optype, self.width, readonly=self.readonly)
         # validate input
-        elif index < 0 or index > (self.width * 8):  # CHAR_BIT == 8
+        elif index < 0 or index >= (self.width * 8):  # CHAR_BIT == 8
             raise ValueError("'index' value out of range")
         # perform operation
         return bool(fp(self._address, index, order.value))

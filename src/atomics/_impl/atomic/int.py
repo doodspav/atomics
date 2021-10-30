@@ -1,33 +1,27 @@
-from .baseint import AtomicIntegralBase
+from .mixins.operations import IntegralOperationsMixin
+
+from .baseint import AtomicIntegralBase, AtomicIntegralViewBase
 
 
-class AtomicInt(AtomicIntegralBase):
+class AtomicInt(AtomicIntegralBase, IntegralOperationsMixin):
 
-    def __init__(self, *, buffer_or_width):
-        super().__init__(buffer_or_width, is_signed=True)
-
-    @classmethod
-    def from_buffer(cls, buffer):
-        cls._require_buffer_protocol(buffer)
-        return cls(buffer_or_width=buffer)
-
-    @classmethod
-    def from_width(cls, width: int):
-        cls._require_int_type(width)
-        return cls(buffer_or_width=width)
+    def __init__(self, *, width: int):
+        super().__init__(width=width, is_signed=True)
 
 
-class AtomicUint(AtomicIntegralBase):
+class AtomicUint(AtomicIntegralBase, IntegralOperationsMixin):
 
-    def __init__(self, *, buffer_or_width):
-        super().__init__(buffer_or_width, is_signed=False)
+    def __init__(self, *, width: int):
+        super().__init__(width=width, is_signed=False)
 
-    @classmethod
-    def from_buffer(cls, buffer):
-        cls._require_buffer_protocol(buffer)
-        return cls(buffer_or_width=buffer)
 
-    @classmethod
-    def from_width(cls, width: int):
-        cls._require_int_type(width)
-        return cls(buffer_or_width=width)
+class AtomicIntView(AtomicIntegralViewBase, IntegralOperationsMixin):
+
+    def __init__(self, *, buffer):
+        super().__init__(buffer=buffer, is_signed=True)
+
+
+class AtomicUintView(AtomicIntegralViewBase, IntegralOperationsMixin):
+
+    def __init__(self, *, buffer):
+        super().__init__(buffer=buffer, is_signed=True)

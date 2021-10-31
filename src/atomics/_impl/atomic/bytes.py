@@ -1,4 +1,4 @@
-from .mixins.operations import ByteOperationsMixin
+from .mixins.byteops import ByteOperationsMixin
 
 from .base import AtomicBase, AtomicViewBase
 

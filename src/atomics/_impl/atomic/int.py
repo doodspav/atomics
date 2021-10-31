@@ -1,4 +1,4 @@
-from .mixins.operations import IntegralOperationsMixin
+from .mixins.intops import IntegralOperationsMixin
 
 from .baseint import AtomicIntegralBase, AtomicIntegralViewBase
 

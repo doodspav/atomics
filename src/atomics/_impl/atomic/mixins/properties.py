@@ -1,7 +1,4 @@
-from ...enums import OpType
 from ...pybuffer import PyBuffer
-
-from typing import Callable, Dict
 
 
 class PropertiesMixin:

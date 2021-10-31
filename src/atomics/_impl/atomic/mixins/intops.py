@@ -1,5 +1,4 @@
 from ...enums import MemoryOrder, OpType
-from ...exceptions import MemoryOrderError
 
 from .byteops import ByteOperationsMixin
 
@@ -32,8 +31,8 @@ class IntegralOperationsMixin(ByteOperationsMixin):
         exp = int.from_bytes(exp, sys.byteorder, signed=self.signed)
         return ok, exp
 
-    def _impl_bin_arithmetic(self, optype: OpType, value: Optional[int],
-                             order: MemoryOrder) -> Optional[int]:
+    def _impl_bin_ari(self, optype: OpType, value: Optional[int],
+                      order: MemoryOrder) -> Optional[int]:
         if value is not None:
             value = value.to_bytes(self.width, sys.byteorder, signed=self.signed)
         res = super()._impl_bin_ari(optype, value, order)
@@ -52,55 +51,55 @@ class IntegralOperationsMixin(ByteOperationsMixin):
         return self._impl_cmpxchg(OpType.CMPXCHG_STRONG, expected, desired, success, failure)
 
     def bin_or(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        return self._impl_bin_arithmetic(OpType.OR, value, order)
+        return self._impl_bin_ari(OpType.OR, value, order)
 
     def bin_xor(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        return self._impl_bin_arithmetic(OpType.XOR, value, order)
+        return self._impl_bin_ari(OpType.XOR, value, order)
 
     def bin_and(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        return self._impl_bin_arithmetic(OpType.AND, value, order)
+        return self._impl_bin_ari(OpType.AND, value, order)
 
     def bin_not(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        return self._impl_bin_arithmetic(OpType.NOT, None, order)
+        return self._impl_bin_ari(OpType.NOT, None, order)
 
     def bin_fetch_or(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        return self._impl_bin_arithmetic(OpType.FETCH_OR, value, order)
+        return self._impl_bin_ari(OpType.FETCH_OR, value, order)
 
     def bin_fetch_xor(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        return self._impl_bin_arithmetic(OpType.FETCH_XOR, value, order)
+        return self._impl_bin_ari(OpType.FETCH_XOR, value, order)
 
     def bin_fetch_and(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        return self._impl_bin_arithmetic(OpType.FETCH_AND, value, order)
+        return self._impl_bin_ari(OpType.FETCH_AND, value, order)
 
     def bin_fetch_not(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        return self._impl_bin_arithmetic(OpType.FETCH_NOT, None, order)
+        return self._impl_bin_ari(OpType.FETCH_NOT, None, order)
 
     def add(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        return self._impl_bin_arithmetic(OpType.ADD, value, order)
+        return self._impl_bin_ari(OpType.ADD, value, order)
 
     def sub(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        return self._impl_bin_arithmetic(OpType.SUB, value, order)
+        return self._impl_bin_ari(OpType.SUB, value, order)
 
     def inc(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        return self._impl_bin_arithmetic(OpType.INC, None, order)
+        return self._impl_bin_ari(OpType.INC, None, order)
 
     def dec(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        return self._impl_bin_arithmetic(OpType.DEC, None, order)
+        return self._impl_bin_ari(OpType.DEC, None, order)
 
     def neg(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        return self._impl_bin_arithmetic(OpType.NEG, None, order)
+        return self._impl_bin_ari(OpType.NEG, None, order)
 
     def fetch_add(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        return self._impl_bin_arithmetic(OpType.FETCH_ADD, value, order)
+        return self._impl_bin_ari(OpType.FETCH_ADD, value, order)
 
     def fetch_sub(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        return self._impl_bin_arithmetic(OpType.FETCH_SUB, value, order)
+        return self._impl_bin_ari(OpType.FETCH_SUB, value, order)
 
     def fetch_inc(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        return self._impl_bin_arithmetic(OpType.FETCH_INC, None, order)
+        return self._impl_bin_ari(OpType.FETCH_INC, None, order)
 
     def fetch_dec(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        return self._impl_bin_arithmetic(OpType.FETCH_DEC, None, order)
+        return self._impl_bin_ari(OpType.FETCH_DEC, None, order)
 
     def fetch_neg(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        return self._impl_bin_arithmetic(OpType.FETCH_NEG, None, order)
+        return self._impl_bin_ari(OpType.FETCH_NEG, None, order)

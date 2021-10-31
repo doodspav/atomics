@@ -32,6 +32,9 @@ class AtomicBase(PropertiesMixin, SupportedMixin):
         # init SupportedMixin to get _supported and ops_supported()
         super().__init__()
 
+    def __str__(self):
+        return f"{self.__class__.__name__}(width={self.width}, readonly={self.readonly})"
+
     def __enter__(self):
         return self
 
@@ -78,6 +81,9 @@ class AtomicViewBase(PropertiesMixin, SupportedMixin):
         # init SupportedMixin to get _supported and ops_supported()
         super().__init__()
 
+    def __str__(self):
+        return f"{self.__class__.__name__}(width={self.width}, readonly={self.readonly})"
+
     def __enter__(self):
         self._enter_called = True
         return self
@@ -97,6 +103,6 @@ class AtomicViewBase(PropertiesMixin, SupportedMixin):
     def _address(self) -> int:
         # make sure we can't use this outside of context-manager
         if self._exit_called or not self._enter_called:
-            raise RuntimeError("Operation cannot be called outside a context manager.")
+            raise RuntimeError("Operation cannot be called outside of a context manager.")
         else:
             return self._buffer.address

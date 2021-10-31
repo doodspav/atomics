@@ -1,6 +1,5 @@
-from .mixins.intops import IntegralOperationsMixin
-
 from .baseint import AtomicIntegralBase, AtomicIntegralViewBase
+from .mixins.intops import IntegralOperationsMixin
 
 
 class AtomicInt(AtomicIntegralBase, IntegralOperationsMixin):

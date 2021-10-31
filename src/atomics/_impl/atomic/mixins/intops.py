@@ -10,19 +10,6 @@ class IntegralOperationsMixin(ByteOperationsMixin):
 
     signed: bool
 
-    def store(self, desired: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        desired = desired.to_bytes(self.width, sys.byteorder, signed=self.signed)
-        super().store(desired, order)
-
-    def load(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        value = super().load(order)
-        return int.from_bytes(value, sys.byteorder, signed=self.signed)
-
-    def exchange(self, desired: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        desired = desired.to_bytes(self.width, sys.byteorder, signed=self.signed)
-        value = super().exchange(desired, order)
-        return int.from_bytes(value, sys.byteorder, signed=self.signed)
-
     def _impl_cmpxchg(self, optype: OpType, expected: int, desired: int,
                       succ: MemoryOrder, fail: MemoryOrder) -> Tuple[bool, int]:
         expected = expected.to_bytes(self.width, sys.byteorder, signed=self.signed)
@@ -39,6 +26,19 @@ class IntegralOperationsMixin(ByteOperationsMixin):
         if res is not None:
             res = int.from_bytes(res, sys.byteorder, signed=self.signed)
         return res
+
+    def store(self, desired: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
+        desired = desired.to_bytes(self.width, sys.byteorder, signed=self.signed)
+        super().store(desired, order)
+
+    def load(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
+        value = super().load(order)
+        return int.from_bytes(value, sys.byteorder, signed=self.signed)
+
+    def exchange(self, desired: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
+        desired = desired.to_bytes(self.width, sys.byteorder, signed=self.signed)
+        value = super().exchange(desired, order)
+        return int.from_bytes(value, sys.byteorder, signed=self.signed)
 
     def cmpxchg_weak(self, expected: int, desired: int,
                      success: MemoryOrder = MemoryOrder.SEQ_CST,

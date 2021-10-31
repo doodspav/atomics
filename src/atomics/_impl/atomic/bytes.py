@@ -1,6 +1,5 @@
-from .mixins.byteops import ByteOperationsMixin
-
 from .base import AtomicBase, AtomicViewBase
+from .mixins.byteops import ByteOperationsMixin
 
 
 class AtomicBytes(AtomicBase, ByteOperationsMixin):

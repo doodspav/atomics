@@ -51,20 +51,6 @@ class IntegralOperationsMixin(ByteOperationsMixin):
                        failure: MemoryOrder = MemoryOrder.SEQ_CST) -> Tuple[bool, int]:
         return self._impl_cmpxchg(OpType.CMPXCHG_STRONG, expected, desired, success, failure)
 
-    def bit_test(self, index: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bool:
-        if not order.is_valid_store_order():
-            raise MemoryOrderError(OpType.BIT_TEST, order, is_fail=False)
-        return self._impl_bit_test(OpType.BIT_TEST, index, order)
-
-    def bit_test_compl(self, index: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bool:
-        return self._impl_bit_test(OpType.BIT_TEST_COMPL, index, order)
-
-    def bit_test_set(self, index: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bool:
-        return self._impl_bit_test(OpType.BIT_TEST_SET, index, order)
-
-    def bit_test_reset(self, index: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bool:
-        return self._impl_bit_test(OpType.BIT_TEST_RESET, index, order)
-
     def bin_or(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
         return self._impl_bin_arithmetic(OpType.OR, value, order)
 

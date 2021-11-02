@@ -1,44 +1,51 @@
 from ...enums import MemoryOrder, OpType
 
+from ..core import AtomicCore
+
 from .byteops import ByteOperationsMixin
 
 import sys
 from typing import Optional, Tuple
 
 
-class IntegralOperationsMixin(ByteOperationsMixin):
+class _ImplIntegralOperationsMixin(ByteOperationsMixin):
 
-    signed: bool
+    _core: AtomicCore
 
     def _impl_cmpxchg(self, optype: OpType, expected: int, desired: int,
                       succ: MemoryOrder, fail: MemoryOrder) -> Tuple[bool, int]:
-        expected = expected.to_bytes(self.width, sys.byteorder, signed=self.signed)
-        desired = desired.to_bytes(self.width, sys.byteorder, signed=self.signed)
+        expected = expected.to_bytes(self._core.width, sys.byteorder, signed=self._core.signed)
+        desired = desired.to_bytes(self._core.width, sys.byteorder, signed=self._core.signed)
         ok, exp = super()._impl_cmpxchg(optype, expected, desired, succ, fail)
-        exp = int.from_bytes(exp, sys.byteorder, signed=self.signed)
+        exp = int.from_bytes(exp, sys.byteorder, signed=self._core.signed)
         return ok, exp
 
     def _impl_bin_ari(self, optype: OpType, value: Optional[int],
                       order: MemoryOrder) -> Optional[int]:
         if value is not None:
-            value = value.to_bytes(self.width, sys.byteorder, signed=self.signed)
+            value = value.to_bytes(self._core.width, sys.byteorder, signed=self._core.signed)
         res = super()._impl_bin_ari(optype, value, order)
         if res is not None:
-            res = int.from_bytes(res, sys.byteorder, signed=self.signed)
+            res = int.from_bytes(res, sys.byteorder, signed=self._core.signed)
         return res
 
+
+class IntegralOperationsMixin(_ImplIntegralOperationsMixin):
+
+    _core: AtomicCore
+
     def store(self, desired: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
-        desired = desired.to_bytes(self.width, sys.byteorder, signed=self.signed)
+        desired = desired.to_bytes(self._core.width, sys.byteorder, signed=self._core.signed)
         super().store(desired, order)
 
     def load(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
         value = super().load(order)
-        return int.from_bytes(value, sys.byteorder, signed=self.signed)
+        return int.from_bytes(value, sys.byteorder, signed=self._core.signed)
 
     def exchange(self, desired: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> int:
-        desired = desired.to_bytes(self.width, sys.byteorder, signed=self.signed)
+        desired = desired.to_bytes(self._core.width, sys.byteorder, signed=self._core.signed)
         value = super().exchange(desired, order)
-        return int.from_bytes(value, sys.byteorder, signed=self.signed)
+        return int.from_bytes(value, sys.byteorder, signed=self._core.signed)
 
     def cmpxchg_weak(self, expected: int, desired: int,
                      success: MemoryOrder = MemoryOrder.SEQ_CST,

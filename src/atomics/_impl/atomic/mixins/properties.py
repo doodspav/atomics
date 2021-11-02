@@ -22,7 +22,6 @@ class BasePropertiesMixin:
 
 class BytePropertiesMixin(BasePropertiesMixin):
 
-    # _core from Base
     load: Callable[[], bytes]
 
     def __str__(self):
@@ -36,7 +35,6 @@ class BytePropertiesMixin(BasePropertiesMixin):
 
 class IntegralPropertiesMixin(BasePropertiesMixin):
 
-    # _core from Base
     load: Callable[[], int]
 
     def __str__(self):

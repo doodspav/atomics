@@ -29,7 +29,7 @@ class Alignment:
         try:
             pybuf = PyBuffer(buffer, writeable=False)
             # check width
-            if len(pybuf) != self.width:
+            if pybuf.width != self.width:
                 error_msg = "Positional argument 'buffer' does not have" \
                             f" matching width of {self.width}."
                 raise ValueError(error_msg)

@@ -2,29 +2,27 @@ from ...enums import MemoryOrder, OpType
 from ...exceptions import MemoryOrderError, UnsupportedOperationException
 from ...pybuffer import PyBuffer
 
-from typing import Callable, Dict, Optional, Tuple
+from ..core import AtomicCore
+
+from typing import Optional, Tuple
 
 
-class ByteOperationsMixin:
+class _ImplByteOperationsMixin:
 
-    _address: int
-    _supported: Dict[OpType, Callable]
-
-    width: int
-    readonly: bool
+    _core: AtomicCore
 
     def _impl_cmpxchg(self, optype: OpType, expected: bytes, desired: bytes,
                       succ: MemoryOrder, fail: MemoryOrder) -> Tuple[bool, bytes]:
         assert ("CMPXCHG" in optype.name)
         # check support
-        fp = self._supported.get(optype)
+        fp = self._core.get_op_func(optype)
         if fp is None:
-            raise UnsupportedOperationException(optype, self.width, readonly=self.readonly)
+            raise UnsupportedOperationException(optype, self._core.width, readonly=self._core.readonly)
         # validate inputs
-        elif len(expected) != self.width:
-            raise ValueError("'expected' length does not match width.")
-        elif len(desired) != self.width:
-            raise ValueError("'desired' length does not match width.")
+        elif len(expected) != self._core.width:
+            raise ValueError("'expected' object length does not match width.")
+        elif len(desired) != self._core.width:
+            raise ValueError("'desired' object length does not match width.")
         elif not fail.is_valid_fail_order(succ):
             raise MemoryOrderError(optype, fail, is_fail=True)
         # perform operation
@@ -33,33 +31,33 @@ class ByteOperationsMixin:
         with PyBuffer(exp_mut, writeable=True, force=True) as exp_buf:
             with PyBuffer(des_mut, writeable=True, force=True) as des_buf:
                 # modifying exp and des contents directly is fine in this case
-                ok = fp(self._address, exp_buf.address, des_buf.address, succ.value, fail.value)
+                ok = fp(self._core.address, exp_buf.address, des_buf.address, succ.value, fail.value)
         return bool(ok), exp_mut
 
     def _impl_bit_test(self, optype: OpType, index: int, order: MemoryOrder) -> bool:
         assert ("BIT_TEST" in optype.name)
         # check support
-        fp = self._supported.get(optype)
+        fp = self._core.get_op_func(optype)
         if fp is None:
-            raise UnsupportedOperationException(optype, self.width, readonly=self.readonly)
+            raise UnsupportedOperationException(optype, self._core.width, readonly=self._core.readonly)
         # validate input
-        elif index < 0 or index >= (self.width * 8):  # CHAR_BIT == 8
+        elif index < 0 or index >= (self._core.width * 8):  # CHAR_BIT == 8
             raise ValueError("'index' value out of range.")
         # perform operation
-        return bool(fp(self._address, index, order.value))
+        return bool(fp(self._core.address, index, order.value))
 
     def _impl_bin_ari(self, optype: OpType, value: Optional[bytes],
                       order: MemoryOrder) -> Optional[bytes]:
         assert (optype.value >= OpType.OR.value)
         # check support
-        fp = self._supported.get(optype)
+        fp = self._core.get_op_func(optype)
         if fp is None:
-            raise UnsupportedOperationException(optype, self.width, readonly=self.readonly)
+            raise UnsupportedOperationException(optype, self._core.width, readonly=self._core.readonly)
         # validate input
-        elif value is not None and len(value) != self.width:
-            raise ValueError("'value' length does not match width.")
+        elif value is not None and len(value) != self._core.width:
+            raise ValueError("'value' object length does not match width.")
         # setup args list
-        args = [self._address]
+        args = [self._core.address]
         bufs = []
         # value param
         if value is not None:
@@ -71,7 +69,7 @@ class ByteOperationsMixin:
         # result "param"
         result = None
         if "FETCH" in optype.name:
-            result = bytes(self.width)
+            result = bytes(self._core.width)
             res_buf = PyBuffer(result, writeable=True, force=True)
             # modifying result contents directly is fine in this case
             args.append(res_buf.address)
@@ -83,49 +81,54 @@ class ByteOperationsMixin:
             buf.release()
         return result
 
+
+class ByteOperationsMixin(_ImplByteOperationsMixin):
+
+    _core: AtomicCore
+
     def store(self, desired: bytes, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:
         # check support
-        fp = self._supported.get(OpType.STORE)
+        fp = self._core.get_op_func(OpType.STORE)
         if fp is None:
-            raise UnsupportedOperationException(OpType.STORE, self.width, readonly=self.readonly)
+            raise UnsupportedOperationException(OpType.STORE, self._core.width, readonly=self._core.readonly)
         # validate inputs
         elif not order.is_valid_store_order():
             raise MemoryOrderError(OpType.STORE, order, is_fail=False)
-        elif len(desired) != self.width:
-            raise ValueError("'desired' length does not match width.")
+        elif len(desired) != self._core.width:
+            raise ValueError("'desired' object length does not match width.")
         # perform operation
         with PyBuffer(desired, writeable=False) as des_buf:
-            fp(self._address, des_buf.address, order.value)
+            fp(self._core.address, des_buf.address, order.value)
 
     def load(self, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bytes:
         # check support
-        fp = self._supported.get(OpType.LOAD)
+        fp = self._core.get_op_func(OpType.LOAD)
         if fp is None:
-            raise UnsupportedOperationException(OpType.LOAD, self.width, readonly=self.readonly)
+            raise UnsupportedOperationException(OpType.LOAD, self._core.width, readonly=self._core.readonly)
         # validate input
         elif not order.is_valid_load_order():
             raise MemoryOrderError(OpType.LOAD, order, is_fail=False)
         # perform operation
-        result = bytes(self.width)
+        result = bytes(self._core.width)
         with PyBuffer(result, writeable=True, force=True) as res_buf:
             # modifying result contents directly is fine in this case
-            fp(self._address, order.value, res_buf.address)
+            fp(self._core.address, order.value, res_buf.address)
         return result
 
     def exchange(self, desired: bytes, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bytes:
         # check support
-        fp = self._supported.get(OpType.EXCHANGE)
+        fp = self._core.get_op_func(OpType.EXCHANGE)
         if fp is None:
-            raise UnsupportedOperationException(OpType.EXCHANGE, self.width, readonly=self.readonly)
+            raise UnsupportedOperationException(OpType.EXCHANGE, self._core.width, readonly=self._core.readonly)
         # validate input
-        elif len(desired) != self.width:
-            raise ValueError("'desired' length does not match width")
+        elif len(desired) != self._core.width:
+            raise ValueError("'desired' object length does not match width.")
         # perform operation
-        result = bytes(self.width)
+        result = bytes(self._core.width)
         with PyBuffer(result, writeable=True, force=True) as res_buf:
-            # modifying result contents is directly is fine in this case
+            # modifying result contents directly is fine in this case
             with PyBuffer(desired, writeable=False) as des_buf:
-                fp(self._address, des_buf.address, order.value, res_buf.address)
+                fp(self._core.address, des_buf.address, order.value, res_buf.address)
         return result
 
     def cmpxchg_weak(self, expected: bytes, desired: bytes,

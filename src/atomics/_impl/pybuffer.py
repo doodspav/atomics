@@ -29,12 +29,6 @@ class PyBuffer:
     def __del__(self):
         self.release()
 
-    def __len__(self) -> int:
-        if self._len is not None:
-            return self._len
-        else:
-            raise ValueError("Operation forbidden on released PyBuffer object.")
-
     def release(self) -> None:
         if hasattr(self, "_buf") and self._buf is not None:
             ffi.release(self._buf)
@@ -49,6 +43,13 @@ class PyBuffer:
             return int(ffi.cast("uintptr_t", self._buf))
         else:
             raise ValueError("Operation forbidden on released PyBuffer object.")
+
+    @property
+    def width(self) -> int:
+        if self._len is not None:
+            return self._len
+        else:
+            raise ValueError("Operation forbidden on release PyBuffer object.")
 
     @property
     def readonly(self) -> bool:

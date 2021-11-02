@@ -1,12 +1,12 @@
-from .enums import OpType
-from .decorators import unreleased
-from .patomic import Ops
-from .pybuffer import PyBuffer
+from ..enums import OpType
+from ..decorators import unreleased
+from ..patomic import Ops
+from ..pybuffer import PyBuffer
 
 from typing import Callable, Dict, Optional
 
 
-class Core:
+class AtomicCore:
 
     def __init__(self, buffer: PyBuffer, ops: Ops, *, is_integral: bool, is_signed: bool):
         # check if object has been initialised
@@ -38,6 +38,10 @@ class Core:
         if hasattr(self, "_buffer"):
             self._buffer.release()
 
+    @property
+    def _released(self) -> bool:
+        return hasattr(self, "_buffer") and self._buffer
+
     @unreleased
     def get_op_func(self, optype: OpType) -> Optional[Callable]:
         return self._supported.get(optype)
@@ -66,10 +70,6 @@ class Core:
                 ots[ot] = fp
         # return supported ops
         return ots
-
-    @property
-    def _released(self) -> bool:
-        return hasattr(self, "_buffer") and self._buffer
 
     @unreleased
     @property

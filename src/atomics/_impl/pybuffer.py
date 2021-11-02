@@ -1,3 +1,5 @@
+from .decorators import unreleased
+
 import cffi
 
 
@@ -20,6 +22,7 @@ class PyBuffer:
         self._len = view.nbytes
         self._readonly = not writeable
 
+    @unreleased
     def __enter__(self):
         return self
 
@@ -29,8 +32,14 @@ class PyBuffer:
     def __del__(self):
         self.release()
 
+    def __bool__(self):
+        return not self._released
+
     def release(self) -> None:
+        # this may be called in __del__ if exception is raised in __init__
+        # we cannot rely on any attributes existing
         if hasattr(self, "_buf") and self._buf is not None:
+            # if _buf exists, we can be confident the rest of the attributes do too
             ffi.release(self._buf)
             self._buf = None
             self._obj = None
@@ -38,29 +47,25 @@ class PyBuffer:
             self._readonly = None
 
     @property
+    def _released(self) -> bool:
+        return self._buf is not None
+
+    @property
+    @unreleased
     def address(self) -> int:
-        if self._buf is not None:
-            return int(ffi.cast("uintptr_t", self._buf))
-        else:
-            raise ValueError("Operation forbidden on released PyBuffer object.")
+        return int(ffi.cast("uintptr_t", self._buf))
 
     @property
+    @unreleased
     def width(self) -> int:
-        if self._len is not None:
-            return self._len
-        else:
-            raise ValueError("Operation forbidden on release PyBuffer object.")
+        return self._len
 
     @property
+    @unreleased
     def readonly(self) -> bool:
-        if self._readonly is not None:
-            return self._readonly
-        else:
-            raise ValueError("Operation forbidden on released PyBuffer object.")
+        return self._readonly
 
     @property
+    @unreleased
     def obj(self):
-        if self._obj is not None:
-            return self._obj
-        else:
-            raise ValueError("Operation forbidden on released PyBuffer object.")
+        return self._obj

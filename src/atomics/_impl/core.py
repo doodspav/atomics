@@ -1,11 +1,12 @@
 from .enums import OpType
+from .decorators import unreleased
 from .patomic import Ops
 from .pybuffer import PyBuffer
 
 from typing import Callable, Dict, Optional
 
 
-class UniqueCore:
+class Core:
 
     def __init__(self, buffer: PyBuffer, ops: Ops, *, is_integral: bool, is_signed: bool):
         # check if object has been initialised
@@ -18,6 +19,7 @@ class UniqueCore:
         self._is_signed: bool = is_signed
         self._supported: Dict[OpType, Callable] = self._get_supported_ops_map()
 
+    @unreleased
     def __enter__(self):
         return self
 
@@ -27,28 +29,20 @@ class UniqueCore:
     def __del__(self):
         self.release()
 
-    @property
-    def address(self) -> int:
-        return self._buffer.address
+    def __bool__(self):
+        return not self._released
 
-    @property
-    def width(self) -> int:
-        return self._buffer.width
+    def release(self) -> None:
+        # this may be called in __del__ if exception is raised in __init__
+        # we cannot rely on any attributes existing
+        if hasattr(self, "_buffer"):
+            self._buffer.release()
 
-    @property
-    def readonly(self) -> bool:
-        return self._buffer.readonly
-
-    @property
-    def signed(self) -> bool:
-        return self._is_signed
-
+    @unreleased
     def get_op_func(self, optype: OpType) -> Optional[Callable]:
         return self._supported.get(optype)
 
-    def release(self) -> None:
-        self._buffer.release()
-
+    @unreleased
     def _get_supported_ops_map(self) -> Dict[OpType, Callable]:
         ots: Dict[OpType, Callable] = {}
         # loop through all possible ops
@@ -72,3 +66,27 @@ class UniqueCore:
                 ots[ot] = fp
         # return supported ops
         return ots
+
+    @property
+    def _released(self) -> bool:
+        return hasattr(self, "_buffer") and self._buffer
+
+    @unreleased
+    @property
+    def address(self) -> int:
+        return self._buffer.address
+
+    @unreleased
+    @property
+    def width(self) -> int:
+        return self._buffer.width
+
+    @unreleased
+    @property
+    def readonly(self) -> bool:
+        return self._buffer.readonly
+
+    @unreleased
+    @property
+    def signed(self) -> bool:
+        return self._is_signed

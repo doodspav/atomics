@@ -47,6 +47,10 @@ class AtomicCore:
         return self._supported.get(optype)
 
     @unreleased
+    def ops_supported(self) -> [OpType]:
+        return sorted(list(self._supported.keys()))
+
+    @unreleased
     def _get_supported_ops_map(self) -> Dict[OpType, Callable]:
         ots: Dict[OpType, Callable] = {}
         # loop through all possible ops

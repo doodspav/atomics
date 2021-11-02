@@ -1,3 +1,5 @@
+from ...enums import OpType
+
 from ..core import AtomicCore
 
 from typing import Callable
@@ -18,6 +20,10 @@ class BasePropertiesMixin:
     @property
     def readonly(self) -> bool:
         return self._core.readonly
+
+    @property
+    def ops_supported(self) -> [OpType]:
+        return self._core.ops_supported
 
 
 class BytePropertiesMixin(BasePropertiesMixin):

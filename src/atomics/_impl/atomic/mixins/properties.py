@@ -1,18 +1,52 @@
-from ...pybuffer import PyBuffer
+from ..core import AtomicCore
+
+from typing import Callable
 
 
-class PropertiesMixin:
+class BasePropertiesMixin:
 
-    _buffer: PyBuffer
+    _core: AtomicCore
 
     @property
     def _address(self) -> int:
-        return self._buffer.address
+        return self._core.address
 
     @property
     def width(self) -> int:
-        return len(self._buffer)
+        return self._core.width
 
     @property
     def readonly(self) -> bool:
-        return self._buffer.readonly
+        return self._core.readonly
+
+
+class BytePropertiesMixin(BasePropertiesMixin):
+
+    # _core from Base
+    load: Callable[[], bytes]
+
+    def __str__(self):
+        msg = f"{self.__class__.__name__}(value={self.load()}, " \
+              f"width={self.width}, readonly={self.readonly})"
+        return msg
+
+    def __bytes__(self):
+        return self.load()
+
+
+class IntegralPropertiesMixin(BasePropertiesMixin):
+
+    # _core from Base
+    load: Callable[[], int]
+
+    def __str__(self):
+        msg = f"{self.__class__.__name__}(value={self.load()}, " \
+              f"width={self.width}, readonly={self.readonly})"
+        return msg
+
+    def __int__(self):
+        return self.load()
+
+    @property
+    def signed(self) -> bool:
+        return self._core.signed

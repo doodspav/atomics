@@ -1,108 +1,113 @@
-from .mixins.properties import PropertiesMixin
-from .mixins.supported import SupportedMixin
-
 from ..alignment import Alignment
 from ..exceptions import AlignmentError, UnsupportedWidthException
 from ..patomic import Patomic
 from ..pybuffer import PyBuffer
 
+from .core import AtomicCore
 
-class AtomicBase(PropertiesMixin, SupportedMixin):
+
+class AtomicBase:
 
     def __init__(self, *, width: int, is_integral: bool, is_signed: bool):
         # check if object has been initialised
-        if hasattr(self, "_buffer"):
+        if hasattr(self, "_core"):
             raise ValueError("Atomic object cannot be re-initialised.")
-        self._is_integral: bool = is_integral
-        self._is_signed: bool = is_signed
         # check type
         if not isinstance(width, int):
             raise TypeError("Keyword argument 'width' must have type 'int'.")
-        # create buffer
-        self._buffer = PyBuffer(bytearray(width), writeable=True)
         # check ops are available
         p = Patomic()
-        self._ops = p.ops(width)
-        if p.count_nonnull_ops(self._ops, readonly=False) == 0:
+        ops = p.ops(width)
+        if p.count_nonnull_ops(ops, readonly=False) == 0:
             raise UnsupportedWidthException(width, readonly=False)
-        # check alignment
+        # check alignment of buffer
+        pybuf = PyBuffer(bytearray(width), writeable=True)
         align = Alignment(width)
-        if not align.is_valid_recommended(self._buffer.obj):
-            raise AlignmentError(width, self._buffer.address, using_recommended=True)
-        # init SupportedMixin to get _supported and ops_supported()
-        super().__init__()
-
-    def __str__(self):
-        return f"{self.__class__.__name__}(width={self.width}, readonly={self.readonly})"
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.release()
+        if not align.is_valid_recommended(pybuf.obj):
+            raise AlignmentError(width, pybuf.address, using_recommended=True)
+        # create core
+        self._core = AtomicCore(pybuf, ops, is_integral=is_integral, is_signed=is_signed)
 
     def __del__(self):
-        self.release()
-
-    def release(self) -> None:
-        if hasattr(self, "_buffer"):
-            self._buffer.release()
+        if hasattr(self, "_core"):
+            self._core.release()
 
 
-class AtomicViewBase(PropertiesMixin, SupportedMixin):
+class AtomicViewBase:
+
+    def __init__(self, core: AtomicCore):
+        # check if object has been initialised
+        if hasattr(self, "_core"):
+            raise ValueError("AtomicView object cannot be re-initialised.")
+        # check type
+        if not isinstance(core, AtomicCore):
+            raise TypeError("Positional argument 'core' must have type 'AtomicCore'.")
+        # store core
+        self._core = core
+
+    def __del__(self):
+        if hasattr(self, "_core"):
+            self._core.release()
+
+
+class AtomicViewBaseContext:
 
     def __init__(self, *, buffer, is_integral: bool, is_signed: bool):
         # check if object has been initialised
-        if hasattr(self, "_buffer"):
-            raise ValueError("AtomicView object cannot be re-initialised.")
-        self._is_integral: bool = is_integral
-        self._is_signed: bool = is_signed
-        self._enter_called: bool = False
-        self._exit_called: bool = False
+        if hasattr(self, "_core"):
+            raise ValueError("AtomicViewContext object cannot be re-initialised.")
         # check and deal with buffer
+        pybuf = None
         try:
             with memoryview(buffer) as view:
-                self._buffer = PyBuffer(buffer, writeable=(not view.readonly))
+                pybuf = PyBuffer(buffer, writeable=(not view.readonly))
         except TypeError:
             pass
         # check for TypeError; raise outside exception handler for nicer error message
-        if not hasattr(self, "_buffer"):
+        if pybuf is None:
             em = "Keyword argument 'buffer' must support the buffer protocol."
             raise TypeError(em)
         # check ops are available
         p = Patomic()
-        self._ops = p.ops(self.width)
-        if p.count_nonnull_ops(self._ops, readonly=self.readonly) == 0:
-            raise UnsupportedWidthException(self.width, readonly=self.readonly)
-        # check alignment
-        align = Alignment(self.width)
-        if not align.is_valid_recommended(self._buffer.obj):
-            raise AlignmentError(self.width, self._buffer.address, using_recommended=True)
-        # init SupportedMixin to get _supported and ops_supported()
-        super().__init__()
+        ops = p.ops(pybuf.width)
+        if p.count_nonnull_ops(ops, readonly=pybuf.readonly) == 0:
+            # pybuf MUST be released before function exit
+            width, ro = pybuf.width, pybuf.readonly
+            pybuf.release()
+            raise UnsupportedWidthException(width, readonly=ro)
+        # check alignment of buffer
+        align = Alignment(pybuf.width)
+        if not align.is_valid_recommended(pybuf.obj):
+            # pybuf MUST be released before function exit
+            width, addr = pybuf.width, pybuf.address
+            pybuf.release()
+            raise AlignmentError(width, addr, using_recommended=True)
+        # create core
+        self._core = AtomicCore(pybuf, ops, is_integral=is_integral, is_signed=is_signed)
+        self._entered = False
+        self._exited = False
 
-    def __str__(self):
-        return f"{self.__class__.__name__}(width={self.width}, readonly={self.readonly})"
-
-    def __enter__(self):
-        self._enter_called = True
-        return self
+    def __enter__(self) -> AtomicViewBase:
+        self._assert_enter_preconditions()
+        self._entered = True
+        return AtomicViewBase(self._core)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self._exit_called = True
+        self._exited = True
         self.release()
 
     def __del__(self):
         self.release()
 
     def release(self) -> None:
-        if hasattr(self, "_buffer"):
-            self._buffer.release()
+        if hasattr(self, "_core"):
+            if self._entered and not self._exited:
+                raise ValueError("Cannot call 'release' while context is open.")
+            else:
+                self._core.release()
 
-    @property
-    def _address(self) -> int:
-        # make sure we can't use this outside of context-manager
-        if self._exit_called or not self._enter_called:
-            raise RuntimeError("Operation cannot be called outside of a context manager.")
-        else:
-            return self._buffer.address
+    def _assert_enter_preconditions(self) -> None:
+        if self._entered:
+            raise ValueError("Cannot open context multiple times.")
+        elif not self._core:
+            raise ValueError("Cannot open context after calling 'release'.")

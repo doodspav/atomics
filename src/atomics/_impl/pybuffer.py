@@ -35,6 +35,13 @@ class PyBuffer:
     def __bool__(self):
         return not self._released
 
+    def __str__(self):
+        if self:
+            return f"{self.__class__.__name__}(address={self.address}, width={self.width}" \
+                   f", readonly={self.readonly}, obj={self.obj})"
+        else:
+            return f"{self.__class__.__name__}(released)"
+
     def release(self) -> None:
         # this may be called in __del__ if exception is raised in __init__
         # we cannot rely on any attributes existing

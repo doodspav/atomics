@@ -11,14 +11,14 @@ class PyBuffer:
         if hasattr(self, "_buf"):
             raise ValueError("PyBuffer object cannot be re-initialised.")
         # check if writeable can be satisfied
-        view = memoryview(exporter)
-        if writeable and view.readonly and not force:
-            raise RuntimeError("Cannot create writeable PyBuffer from readonly exporter.")
-        # get and save buffer
-        self._buf = ffi.from_buffer("char[]", exporter, not view.readonly)
-        self._obj = exporter
-        self._len = view.nbytes
-        self._readonly = not writeable
+        with memoryview(exporter) as view:
+            if writeable and view.readonly and not force:
+                raise RuntimeError("Cannot create writeable PyBuffer from readonly exporter.")
+            # get and save buffer
+            self._buf = ffi.from_buffer("char[]", exporter, not view.readonly)
+            self._obj = exporter
+            self._len = view.nbytes
+            self._readonly = not writeable
 
     def __enter__(self):
         self._assert_not_released()

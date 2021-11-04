@@ -5,8 +5,10 @@ from ..pybuffer import PyBuffer
 
 from .core import AtomicCore
 
+from .mixins.properties import BasePropertiesMixin
 
-class Atomic:
+
+class Atomic(BasePropertiesMixin):
 
     def __init__(self, *, width: int, is_integral: bool, is_signed: bool):
         # check if object has been initialised
@@ -33,7 +35,7 @@ class Atomic:
             self._core.release()
 
 
-class AtomicView:
+class AtomicView(BasePropertiesMixin):
 
     def __init__(self, core: AtomicCore):
         # check if object has been initialised

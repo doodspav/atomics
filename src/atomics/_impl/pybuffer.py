@@ -1,5 +1,3 @@
-from .decorators import unreleased
-
 import cffi
 
 
@@ -22,8 +20,8 @@ class PyBuffer:
         self._len = view.nbytes
         self._readonly = not writeable
 
-    @unreleased
     def __enter__(self):
+        self._assert_not_released()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -55,24 +53,29 @@ class PyBuffer:
 
     @property
     def _released(self) -> bool:
-        return self._buf is not None
+        return self._buf is None
+
+    def _assert_not_released(self) -> None:
+        if self._released:
+            msg = f"Operation forbidden on released {self.__class__.__name__} object."
+            raise ValueError(msg)
 
     @property
-    @unreleased
     def address(self) -> int:
+        self._assert_not_released()
         return int(ffi.cast("uintptr_t", self._buf))
 
     @property
-    @unreleased
     def width(self) -> int:
+        self._assert_not_released()
         return self._len
 
     @property
-    @unreleased
     def readonly(self) -> bool:
+        self._assert_not_released()
         return self._readonly
 
     @property
-    @unreleased
     def obj(self):
+        self._assert_not_released()
         return self._obj

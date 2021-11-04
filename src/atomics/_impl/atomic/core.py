@@ -1,5 +1,4 @@
 from ..enums import OpType
-from ..decorators import unreleased
 from ..patomic import Ops
 from ..pybuffer import PyBuffer
 
@@ -19,8 +18,8 @@ class AtomicCore:
         self._is_signed: bool = is_signed
         self._supported: Dict[OpType, Callable] = self._get_supported_ops_map()
 
-    @unreleased
     def __enter__(self):
+        self._assert_not_released()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -40,18 +39,19 @@ class AtomicCore:
 
     @property
     def _released(self) -> bool:
-        return hasattr(self, "_buffer") and self._buffer
+        return not bool(self._buffer)
 
-    @unreleased
+    def _assert_not_released(self) -> None:
+        if self._released:
+            msg = f"Operation forbidden on release {self.__class__.__name__} object."
+            raise ValueError(msg)
+
     def get_op_func(self, optype: OpType) -> Optional[Callable]:
+        self._assert_not_released()
         return self._supported.get(optype)
 
-    @unreleased
-    def ops_supported(self) -> [OpType]:
-        return sorted(list(self._supported.keys()))
-
-    @unreleased
     def _get_supported_ops_map(self) -> Dict[OpType, Callable]:
+        self._assert_not_released()
         ots: Dict[OpType, Callable] = {}
         # loop through all possible ops
         for ot in OpType:
@@ -75,22 +75,27 @@ class AtomicCore:
         # return supported ops
         return ots
 
-    @unreleased
     @property
     def address(self) -> int:
+        self._assert_not_released()
         return self._buffer.address
 
-    @unreleased
     @property
     def width(self) -> int:
+        self._assert_not_released()
         return self._buffer.width
 
-    @unreleased
     @property
     def readonly(self) -> bool:
+        self._assert_not_released()
         return self._buffer.readonly
 
-    @unreleased
     @property
     def signed(self) -> bool:
+        self._assert_not_released()
         return self._is_signed
+
+    @property
+    def ops_supported(self) -> [OpType]:
+        self._assert_not_released()
+        return sorted(list(self._supported.keys()))

@@ -6,7 +6,7 @@ from ..pybuffer import PyBuffer
 from .core import AtomicCore
 
 
-class AtomicBase:
+class Atomic:
 
     def __init__(self, *, width: int, is_integral: bool, is_signed: bool):
         # check if object has been initialised
@@ -33,7 +33,7 @@ class AtomicBase:
             self._core.release()
 
 
-class AtomicViewBase:
+class AtomicView:
 
     def __init__(self, core: AtomicCore):
         # check if object has been initialised
@@ -50,7 +50,7 @@ class AtomicViewBase:
             self._core.release()
 
 
-class AtomicViewBaseContext:
+class AtomicViewContext:
 
     def __init__(self, *, buffer, is_integral: bool, is_signed: bool):
         # check if object has been initialised
@@ -87,10 +87,10 @@ class AtomicViewBaseContext:
         self._entered = False
         self._exited = False
 
-    def __enter__(self) -> AtomicViewBase:
+    def __enter__(self) -> AtomicView:
         self._assert_enter_preconditions()
         self._entered = True
-        return AtomicViewBase(self._core)
+        return AtomicView(self._core)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._exited = True

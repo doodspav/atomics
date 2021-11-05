@@ -25,6 +25,11 @@ class BasePropertiesMixin:
     def ops_supported(self) -> [OpType]:
         return self._core.ops_supported
 
+    def __str__(self):
+        msg = f"{self.__class__.__name__}(width={self.width}, " \
+              f"readonly={self.readonly})"
+        return msg
+
 
 class BytePropertiesMixin(BasePropertiesMixin):
 
@@ -45,7 +50,8 @@ class IntegralPropertiesMixin(BasePropertiesMixin):
 
     def __str__(self):
         msg = f"{self.__class__.__name__}(value={self.load()}, " \
-              f"width={self.width}, readonly={self.readonly})"
+              f"width={self.width}, readonly={self.readonly}, " \
+              f"signed={self.signed})"
         return msg
 
     def __int__(self):

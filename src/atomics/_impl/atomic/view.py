@@ -3,22 +3,24 @@ from .baseint import AtomicIntegralView, AtomicIntegralViewContext
 from .bytes import AtomicBytesView, AtomicBytesViewContext
 from .int import AtomicIntView, AtomicUintView, AtomicIntViewContext, AtomicUintViewContext
 
-from typing import overload, Type
+from typing import overload, Type, Union
 
 
-@overload
-def atomicview(buffer, atype: Type[AtomicView], **kwargs) -> AtomicViewContext:
-    ...
+AVUnion = Union[
+    AtomicView,
+    AtomicIntegralView,
+    AtomicBytesView,
+    AtomicIntView,
+    AtomicUintView
+]
 
-
-@overload
-def atomicview(buffer, atype: Type[AtomicIntegralView], **kwargs) -> AtomicIntegralViewContext:
-    ...
-
-
-@overload
-def atomicview(buffer, atype: Type[AtomicBytesView], **kwargs) -> AtomicBytesViewContext:
-    ...
+AVCUnion = Union[
+    AtomicViewContext,
+    AtomicIntegralViewContext,
+    AtomicBytesViewContext,
+    AtomicIntViewContext,
+    AtomicUintViewContext
+]
 
 
 @overload
@@ -31,7 +33,22 @@ def atomicview(buffer, atype: Type[AtomicUintView], **kwargs) -> AtomicUintViewC
     ...
 
 
-def atomicview(buffer, atype, **kwargs):
+@overload
+def atomicview(buffer, atype: Type[AtomicBytesView], **kwargs) -> AtomicBytesViewContext:
+    ...
+
+
+@overload
+def atomicview(buffer, atype: Type[AtomicIntegralView], **kwargs) -> AtomicIntegralViewContext:
+    ...
+
+
+@overload
+def atomicview(buffer, atype: Type[AtomicView], **kwargs) -> AtomicViewContext:
+    ...
+
+
+def atomicview(buffer, atype: Type[AVUnion], **kwargs) -> AVCUnion:
     if atype is AtomicIntView:
         return AtomicIntViewContext(buffer=buffer)
     elif atype is AtomicUintView:

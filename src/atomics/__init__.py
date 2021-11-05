@@ -5,14 +5,16 @@ from ._impl.atomic.bytes import AtomicBytes, AtomicBytesView
 from ._impl.atomic.int import AtomicInt, AtomicIntView
 from ._impl.atomic.int import AtomicUint, AtomicUintView
 
+from ._impl.atomic.view import atomicview
+
 
 __all__ = [
-    # atomic types
+    # atomics
     "AtomicBytes", "AtomicBytesView",
     "AtomicInt", "AtomicIntView",
     "AtomicUint", "AtomicUintView",
-    # helper type
-    "Alignment",
-    # enum types
+    # helpers
+    "Alignment", "atomicview",
+    # enums
     "MemoryOrder", "OpType",
 ]

@@ -43,7 +43,7 @@ class AtomicCore:
 
     def _assert_not_released(self) -> None:
         if self._released:
-            msg = f"Operation forbidden on release {self.__class__.__name__} object."
+            msg = f"Operation forbidden on released {self.__class__.__name__} object."
             raise ValueError(msg)
 
     def get_op_func(self, optype: OpType) -> Optional[Callable]:

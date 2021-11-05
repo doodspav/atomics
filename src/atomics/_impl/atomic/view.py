@@ -32,16 +32,16 @@ def atomicview(buffer, atype: Type[AtomicUintView], **kwargs) -> AtomicUintViewC
 
 
 def atomicview(buffer, atype, **kwargs):
-    if atype is AtomicView:
-        return AtomicViewContext(buffer=buffer, **kwargs)
-    elif atype is AtomicIntegralView:
-        return AtomicIntegralViewContext(buffer=buffer, **kwargs)
-    elif atype is AtomicBytesView:
-        return AtomicBytesViewContext(buffer=buffer)
-    elif atype is AtomicIntView:
+    if atype is AtomicIntView:
         return AtomicIntViewContext(buffer=buffer)
     elif atype is AtomicUintView:
         return AtomicUintViewContext(buffer=buffer)
+    elif atype is AtomicBytesView:
+        return AtomicBytesViewContext(buffer=buffer)
+    elif atype is AtomicIntegralView:
+        return AtomicIntegralViewContext(buffer=buffer, **kwargs)
+    elif atype is AtomicView:
+        return AtomicViewContext(buffer=buffer, **kwargs)
     else:
-        msg = "'atype' must be one of [AtomicView, Atomic{Integral|Bytes|Int|Uint}View] types."
+        msg = "Type parameter 'atype' must be a provided type deriving from AtomicView."
         raise TypeError(msg)

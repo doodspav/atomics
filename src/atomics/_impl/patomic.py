@@ -1,5 +1,6 @@
-from ctypes import *
 import pathlib
+
+from ctypes import *
 
 
 _opsig_explicit_store_t = CFUNCTYPE(None, c_void_p, c_void_p, c_int)
@@ -73,43 +74,54 @@ class Patomic:
         _fields_ = [("ops", Ops),
                     ("align", Alignment)]
 
-    def __init__(self):
-        # get lib path
-        path = pathlib.Path(__file__).parent.parent.resolve()
-        path = path.joinpath("_clib")
-        possible_paths = sorted(path.glob("*patomic*"))
-        if not possible_paths:
-            raise FileNotFoundError("Could not find patomic lib in atomics._clib")
-        path = possible_paths[-1]
-        # setup lib
-        self._lib = cdll.LoadLibrary(str(path))
-        self._lib.patomic_create_explicit.restype = Patomic._PatomicExplicit
-        self._lib.patomic_create_explicit.argtypes = [c_size_t, c_int, c_int]
-        self._lib.patomic_nonnull_ops_count_explicit.restype = c_int
-        self._lib.patomic_nonnull_ops_count_explicit.argtypes = [POINTER(Ops)]
+    _lib = None
 
-    def _create_explicit(self, width: int) -> _PatomicExplicit:
+    @staticmethod
+    def _get_lib():
+        if Patomic._lib is None:
+            # get lib path
+            path = pathlib.Path(__file__).parent.parent.resolve()
+            path = path.joinpath("_clib")
+            possible_paths = sorted(path.glob("*patomic*"))
+            if not possible_paths:
+                raise FileNotFoundError("Could not find patomic lib in atomics._clib")
+            path = possible_paths[-1]
+            # setup lib
+            lib = cdll.LoadLibrary(str(path))
+            lib.patomic_create_explicit.restype = Patomic._PatomicExplicit
+            lib.patomic_create_explicit.argtypes = [c_size_t, c_int, c_int]
+            lib.patomic_nonnull_ops_count_explicit.restype = c_int
+            lib.patomic_nonnull_ops_count_explicit.argtypes = [POINTER(Ops)]
+            # assign to static member
+            Patomic._lib = lib
+        return Patomic._lib
+
+    @staticmethod
+    def _create_explicit(width: int) -> _PatomicExplicit:
         char_bit = 8
         if width < 0:
             raise ValueError("Negative width")
         elif width.bit_length() > (sizeof(c_size_t) * char_bit):
             raise OverflowError(width, "Value would overflow size_t")
-        return self._lib.patomic_create_explicit(width, 0, 0)
+        return Patomic._get_lib().patomic_create_explicit(width, 0, 0)
 
-    def ops(self, width: int) -> Ops:
-        pae = self._create_explicit(width)
+    @staticmethod
+    def ops(width: int) -> Ops:
+        pae = Patomic._create_explicit(width)
         return pae.ops
 
-    def alignment(self, width: int) -> Alignment:
-        pae = self._create_explicit(width)
+    @staticmethod
+    def alignment(width: int) -> Alignment:
+        pae = Patomic._create_explicit(width)
         return pae.align
 
-    def count_nonnull_ops(self, ops: Ops, *, readonly: bool) -> int:
+    @staticmethod
+    def count_nonnull_ops(ops: Ops, *, readonly: bool) -> int:
         res = 0
         if readonly:
             # only current non-modifying ops
             res += bool(ops.fp_load)
             res += bool(ops.bitwise_ops.fp_test)
         else:
-            res = self._lib.patomic_nonnull_ops_count_explicit(byref(ops))
+            res = Patomic._get_lib().patomic_nonnull_ops_count_explicit(byref(ops))
         return res

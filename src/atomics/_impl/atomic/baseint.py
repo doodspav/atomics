@@ -1,17 +1,16 @@
 from .base import Atomic, AtomicView, AtomicViewContext
 from .core import AtomicCore
 
-from .mixins.intops import IntegralOperationsMixin
-from .mixins.properties import IntegralPropertiesMixin
+from .mixins.types import INTEGRAL
 
 
-class AtomicIntegral(Atomic, IntegralOperationsMixin, IntegralPropertiesMixin):
+class AtomicIntegral(Atomic, INTEGRAL):
 
     def __init__(self, *, width: int, is_signed: bool):
         super().__init__(width=width, is_integral=True, is_signed=is_signed)
 
 
-class AtomicIntegralView(AtomicView, IntegralOperationsMixin, IntegralPropertiesMixin):
+class AtomicIntegralView(AtomicView, INTEGRAL):
 
     def __init__(self, core: AtomicCore):
         super().__init__(core)

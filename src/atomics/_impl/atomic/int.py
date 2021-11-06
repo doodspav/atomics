@@ -1,14 +1,16 @@
 from .baseint import AtomicIntegral, AtomicIntegralView, AtomicIntegralViewContext
 from .core import AtomicCore
 
+from .mixins.types import INT, UINT
 
-class AtomicInt(AtomicIntegral):
+
+class AtomicInt(AtomicIntegral, INT):
 
     def __init__(self, *, width: int):
         super().__init__(width=width, is_signed=True)
 
 
-class AtomicIntView(AtomicIntegralView):
+class AtomicIntView(AtomicIntegralView, INT):
 
     def __init__(self, core: AtomicCore):
         super().__init__(core)
@@ -25,13 +27,13 @@ class AtomicIntViewContext(AtomicIntegralViewContext):
         return AtomicIntView(self._core)
 
 
-class AtomicUint(AtomicIntegral):
+class AtomicUint(AtomicIntegral, UINT):
 
     def __init__(self, *, width: int):
         super().__init__(width=width, is_signed=False)
 
 
-class AtomicUintView(AtomicIntegralView):
+class AtomicUintView(AtomicIntegralView, UINT):
 
     def __init__(self, core: AtomicCore):
         super().__init__(core)

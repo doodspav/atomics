@@ -1,17 +1,16 @@
 from .base import Atomic, AtomicView, AtomicViewContext
 from .core import AtomicCore
 
-from .mixins.byteops import ByteOperationsMixin
-from .mixins.properties import BytePropertiesMixin
+from .mixins.types import BYTES
 
 
-class AtomicBytes(Atomic, ByteOperationsMixin, BytePropertiesMixin):
+class AtomicBytes(Atomic, BYTES):
 
     def __init__(self, *, width: int):
         super().__init__(width=width, is_integral=False, is_signed=False)
 
 
-class AtomicBytesView(AtomicView, ByteOperationsMixin, BytePropertiesMixin):
+class AtomicBytesView(AtomicView, BYTES):
 
     def __init__(self, core: AtomicCore):
         super().__init__(core)

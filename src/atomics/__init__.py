@@ -1,20 +1,13 @@
 from ._impl.alignment import Alignment
 from ._impl.enums import MemoryOrder, OpType
 
-from ._impl.atomic.bytes import AtomicBytes, AtomicBytesView
-from ._impl.atomic.int import AtomicInt, AtomicIntView
-from ._impl.atomic.int import AtomicUint, AtomicUintView
+from ._impl.atomic.funcs import atomic, atomicview
 
-from ._impl.atomic.view import atomicview
-
+from ._impl.atomic.mixins.types import ANY, INTEGRAL, BYTES, INT, UINT
 
 __all__ = [
-    # atomics
-    "AtomicBytes", "AtomicBytesView",
-    "AtomicInt", "AtomicIntView",
-    "AtomicUint", "AtomicUintView",
-    # helpers
-    "Alignment", "atomicview",
-    # enums
+    "atomic", "atomicview",
+    "ANY", "INTEGRAL", "BYTES", "INT", "UINT",
+    "Alignment",
     "MemoryOrder", "OpType",
 ]

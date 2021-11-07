@@ -177,7 +177,8 @@ The `atomic()` function returns a corresponding `Atomic*` object.
 
 The `atomicview()` function returns a corresponding `Atomic*ViewContext` object.
 You can use this context object in a `with` statement to obtain an `Atomic*View`
-object.
+object. The `buffer` parameter may be any object that supports the buffer
+protocol.
 
 Construction can raise `UnsupportedWidthException` and `AlignmentError`.
 

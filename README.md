@@ -370,6 +370,8 @@ building it (making sure to build the shared library version), and then
 copy-paste the shared library file into `atomics._clib` manually.
 
 ## Future Thoughts
+- add docstrings
+- add tests
 - add support for `minimum` alignment
 - add support for constructing `Atomic` classes' buffers in shared memory
 - add support for passing `Atomic` objects to sub-processes and sub-interpreters

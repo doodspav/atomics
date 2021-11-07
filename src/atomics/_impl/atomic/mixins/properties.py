@@ -1,4 +1,5 @@
 from ...enums import OpType
+from ...exceptions import UnsupportedOperationException
 
 from ..core import AtomicCore
 
@@ -36,7 +37,11 @@ class BytePropertiesMixin(BasePropertiesMixin):
     load: Callable[[], bytes]
 
     def __str__(self):
-        msg = f"{self.__class__.__name__}(value={self.load()}, " \
+        try:
+            value = self.load()
+        except UnsupportedOperationException:
+            value = "LOAD_NOT_SUPPORTED"
+        msg = f"{self.__class__.__name__}(value={value}, " \
               f"width={self.width}, readonly={self.readonly})"
         return msg
 
@@ -49,7 +54,11 @@ class IntegralPropertiesMixin(BasePropertiesMixin):
     load: Callable[[], int]
 
     def __str__(self):
-        msg = f"{self.__class__.__name__}(value={self.load()}, " \
+        try:
+            value = self.load()
+        except UnsupportedOperationException:
+            value = "LOAD_NOT_SUPPORTED"
+        msg = f"{self.__class__.__name__}(value={value}, " \
               f"width={self.width}, readonly={self.readonly}, " \
               f"signed={self.signed})"
         return msg

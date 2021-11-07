@@ -30,14 +30,15 @@ library (implemented in C).
             │
             └───[mixins]
 ```
-#### [atomics.atomic]
+#### [atomics._impl.atomic]
 This directory holds the implementation of all atomic classes and directly
 related atomic helper functions.
 
-#### [atomics.atomic.mixins]
+#### [atomics._impl.atomic.mixins]
 This directory holds the classes implementing all atomic operations and 
 properties, which are then inherited by the atomic classes. No classes here 
-are designed to be constructed as is.
+are intended to be constructed as is. Doing so won't break anything, it's just
+useless.
 
 #### [atomics._impl]
 This directory holds the building block classes which are used in atomic 
@@ -75,14 +76,14 @@ of the underlying buffer of any object supporting the buffer protocol.
 
 #### AtomicCore
 This class is the core attribute present in the `Atomic`, `AtomicView`, and
-`AtomicViewContext` classes.  
+`AtomicViewContext` classes. All atomic related operations pass through it.
 It stores an `Ops` object (obtained from `Patomic`) in order to access all the 
 operations in the C library, and a `PyBuffer` object to perform the operations
-on. All atomic related operations pass through it.
+on.
 
 ## Inheritance
 
-#### [atomics.atomic.mixins]
+#### [atomics._impl.atomic.mixins]
 Mixins provides the following 5 classes, implementing all relevant atomic 
 properties and operations, with the following inheritance hierarchy:
 
@@ -97,7 +98,7 @@ ANY
     └───UINT
 ```
 
-#### [atomics.atomic]
+#### [atomics._impl.atomic]
 
 The files here provide the following 5 `AtomicViewContext` classes, which follow
 the same inheritance hierarchy as the mixin classes:
@@ -115,7 +116,7 @@ AtomicViewContext
 The files also provide `Atomic` and `AtomicView` classes with the same naming 
 scheme as `AtomicViewContext`. They also follow the same inheritance 
 hierarchy except that they additionally inherit from the appropriate mixin 
-class, as shown below using `Atomic`:
+class as shown below, using `Atomic` classes as the example:
 ```
 Atomic <--- ANY
 │
@@ -142,9 +143,10 @@ The atomic and mixin classes are exposed to the user for the purpose of being
 used as type hints.
 
 The `Atomic` and `AtomicViewContext` classes (and their children) **MAY** be
-constructed manually by the user. The `AtomicView` classes (and their children)
-and the mixin classes are **NOT** intended to be constructed manually by the
-user.
+constructed manually by the user. The mixin classes may also be constructed 
+but doing so would be pointless as they're mixins. The `AtomicView` classes 
+(and their children) are **NOT** intended to be constructed manually by the
+user (and cannot be, without accessing library internals).
 
 ## Lifetimes
 

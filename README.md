@@ -107,9 +107,9 @@ This library provides the following `Atomic` classes in `atomics.base`:
 - `AtomicInt --- INT`
 - `AtomicUint --- UINT`
 
-These classes are constructable on their own, but it is strongly suggested using
-the `atomic()` function to construct them. Each class corresponds to one of the
-above helper types (as indicated).
+These `Atomic` classes are constructable on their own, but it is strongly 
+suggested using the `atomic()` function to construct them. Each class 
+corresponds to one of the above helper types (as indicated).
 
 This library also provides `Atomic*View` (in `atomics.view`) and 
 `Atomic*ViewContext` (in `atomics.ctx`) counterparts to the `Atomic*` classes, 

@@ -4,10 +4,15 @@ This library implements a wrapper around the lower level
 part of this library through the `build_patomic` command in `setup.py`).
 
 It exposes hardware level lock-free (and address-free) atomic operations on a 
-memory buffer, either internally allocated or externally provided.
+memory buffer, either internally allocated or externally provided, via a set of
+atomic classes.
 
-These operations are both thread-safe and process-safe, meaning that they can
-be used on a shared memory buffer for interprocess communication.
+The operations in these classes are both thread-safe and process-safe, 
+meaning that they can be used on a shared memory buffer for interprocess 
+communication.
+
+In summary, the atomic classes provided can be accessed and modified safely 
+from multiple threads and/or processes, with no other synchronisation required.
 
 ## Table of Contents
 <!--ts-->
@@ -34,8 +39,8 @@ be used on a shared memory buffer for interprocess communication.
 ## Examples
 
 ### Incorrect
-The following example has a data race. It is not correct, and `a`'s value will
-not equal `total` at the end.
+The following example has a data race (`a`is modified from multiple threads).
+The program is not correct, and `a`'s value will not equal `total` at the end.
 ```python
 from threading import Thread
 
@@ -62,6 +67,9 @@ if __name__ == "__main__":
 ```
 
 ### Multi-Threading
+This example implements the previous example but `a` is now an `AtomicInt` which
+can be safely modified from multiple threads (as opposed to `int` which can't).
+The program is correct, and `a` will equal `total` at the end.
 ```python
 import atomics
 from threading import Thread
@@ -86,6 +94,9 @@ if __name__ == "__main__":
 ```
 
 ### Multi-Processing
+This example is the counterpart to the above correct code, but using processes
+to demonstrate that atomic operations are also safe across processes. This 
+program is also correct, and `a` will equal `total` at the end.
 ```python
 import atomics
 from multiprocessing import Process, shared_memory
@@ -336,15 +347,18 @@ All operations have a default memory order, `SEQ_CST`. This will enforce
 sequential consistency, and essentially make your multi-threaded and/or 
 multi-processed program be as correct as if it were to run in a single thread.
 
+**IF YOU DO NOT UNDERSTAND THE LINKED DOCUMENTATION, DO NOT USE YOUR OWN
+MEMORY ORDERS!!!**
+Stick with the defaults to be safe. (And realistically, this is Python, you 
+won't get a noticeable performance boost from using a more lax memory order).
+
 The following helper functions are provided:
 - `.is_valid_store_order()` (for `store` op)
 - `.is_valid_load_order()` ( for `load` op)
 - `.is_valid_fail_order()` (for the `fail` ordering in `cmpxchg_*` ops)
 
-**IF YOU DO NOT UNDERSTAND THE LINKED DOCUMENTATION, DO NOT USE YOUR OWN
-MEMORY ORDERS!!!**
-Stick with the defaults to be safe. (And realistically, this is Python, you 
-won't get a noticeable performance boost from using a more lax memory order).
+Passing an invalid memory order to one of these ops will raise
+`MemoryOrderError`.
 
 ### Exceptions
 The following exceptions are available in `atomics.exc`:
@@ -376,6 +390,8 @@ copy-paste the shared library file into `atomics._clib` manually.
 - add support for `minimum` alignment
 - add support for constructing `Atomic` classes' buffers in shared memory
 - add support for passing `Atomic` objects to sub-processes and sub-interpreters
+- reimplement in C or Cython for performance gains (preliminary benchmarks
+put such implementations at 2x the speed of a raw `int`)
 
 ## Contributing
 I don't have a guide for contributing yet. This section is here to make the 

@@ -12,6 +12,7 @@ be used on a shared memory buffer for interprocess communication.
 ## Table of Contents
 <!--ts-->
 * [Examples](#examples)
+  * [Incorrect](#incorrect)
   * [Multi-Threading](#multi-threading)
   * [Multi-Processing](#multi-processing)
 * [Docs](#docs)
@@ -31,6 +32,34 @@ be used on a shared memory buffer for interprocess communication.
 <!--te-->
 
 ## Examples
+
+### Incorrect
+The following example has a data race. It is not correct, and `a`'s value will
+not equal `total` at the end.
+```python
+from threading import Thread
+
+
+a = 0
+
+
+def fn(n: int) -> None:
+    global a
+    for _ in range(n):
+        a += 1
+
+
+if __name__ == "__main__":
+    # setup
+    total = 10_000_000
+    # run threads to completion
+    t1 = Thread(target=fn, args=(total // 2,))
+    t2 = Thread(target=fn, args=(total // 2,))
+    t1.start(), t2.start()
+    t1.join(), t2.join()
+    # print results
+    print(f"a[{a}] != total[{total}]")
+```
 
 ### Multi-Threading
 ```python
@@ -62,7 +91,7 @@ import atomics
 from multiprocessing import Process, shared_memory
 
 
-def fn(shmem_name: str, width: int, n: int):
+def fn(shmem_name: str, width: int, n: int) -> None:
     shmem = shared_memory.SharedMemory(name=shmem_name)
     buf = shmem.buf[:width]
     with atomics.atomicview(buffer=buf, atype=atomics.INT) as a:

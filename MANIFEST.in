@@ -1,1 +1,9 @@
-global-exclude *.dll* *.dylib* *.so*
+# All non-source root level files
+include MANIFEST.in
+include pyproject.toml
+include setup.cfg
+include *.md
+include *.txt
+
+# All patomic related files
+global-exclude *.dll* *.dylib* *.so* *.c

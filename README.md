@@ -49,6 +49,25 @@ While the code here has no dependency on any implementation specific features,
 the `cffi` library functions used are likely to not work outside of CPython and 
 PyPy.
 
+Binaries are provided for the following platforms:
+- Windows `[x86, amd64]`
+- MacOSX `[x86_64, universal2]`
+- Linux `[i686, x86_64, aarch64, ppc64le, s390x]` `[manylinux2014, musllinux_1_1]`
+- Linux `[i686, x86_64]` `[manylinux1]`
+
+If you are on one of these platforms and `pip` tries to build from source or
+fails to install, make sure that you have the latest version of `pip` installed.
+This can be done like so:
+
+Linux/MacOS:
+```shell
+$ python3 -m pip install --upgrade pip
+```
+Windows:
+```shell
+$ py -m pip install --upgrade pip
+```
+
 If you need to build from source, check out the [Building](#building) section
 as there are additional requirements for that.
 
@@ -180,7 +199,8 @@ and should only be obtained by called `.__enter__()` on a corresponding
 
 Even though you should never need to directly use these classes (apart from the
 helper types), they are provided to be used in type hinting. The inheritance
-hierarchies are detailed in the [ARCHITECTURE.md](ARCHITECTURE.md) file.
+hierarchies are detailed in the [ARCHITECTURE.md](ARCHITECTURE.md) file
+(available on GitHub).
 
 ### Construction
 This library provides the functions `atomic` and `atomicview`, along with the 
@@ -405,6 +425,9 @@ The following exceptions are available in `atomics.exc`:
 - `UnsupportedOperationException`
 
 ## Building
+
+**IMPORTANT:** Make sure you have the latest version of `pip` installed.
+
 Using `setup.py`'s `build` or `bdist_wheel` commands will run the 
 `build_patomic` command (which you can also run directly).
 
@@ -442,5 +465,5 @@ I don't have a guide for contributing yet. This section is here to make the
 following two points:
 - new operations must first be implemented in `patomic` before this library can
 be updated
-- new architectures and widths must be supported in `patomic` (no change 
-required in this library)
+- new architectures, widths, and existing unsupported operations must be 
+supported in `patomic` (no change required in this library)

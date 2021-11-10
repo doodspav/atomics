@@ -4,7 +4,7 @@ name: on-release
 on:
   release:
     types:
-      - created
+      - published
 
 
 jobs:
@@ -99,8 +99,7 @@ jobs:
   upload_pypi:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    # upload to PyPI on every tag starting with 'v'
-    if: startsWith(github.event.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/download-artifact@v2
         with:
@@ -109,6 +108,5 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@v1.4.2
         with:
-          user: doodspav
-          password: ${{ secrets.TEST_PYPI_PASSWORD }}
-          repository_url: https://test.pypi.org/legacy
+          user: __token__
+          password: ${{ secrets.PROD_PYPI_PASSWORD }}

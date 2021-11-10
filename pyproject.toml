@@ -1,0 +1,7 @@
+[build-system]
+requires = ["GitPython", "cmake>=3.14", "setuptools>=43.0.0", "wheel>=0.25"]
+
+[tool.cibuildwheel]
+# universal2 not supported until cp38+
+build = ["cp36-*", "cp38-macosx_universal2"]
+skip = ["pp*", "cp36-macosx_universal2"]

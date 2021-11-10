@@ -112,8 +112,8 @@ if __name__ == "__main__":
 ### Multi-Processing
 This example is the counterpart to the above correct code, but using processes
 to demonstrate that atomic operations are also safe across processes. This 
-program is also correct, and `a` will equal `total` at the end. Is is also how
-one might communicate with processes written on other languages such as C/C++.
+program is also correct, and `a` will equal `total` at the end. It is also how
+one might communicate with processes written in other languages such as C/C++.
 ```python
 import atomics
 from multiprocessing import Process, shared_memory
@@ -328,10 +328,30 @@ operations:
 
 The usage of (most of) these functions is modelled directly on the C++11 
 `std::atomic` implementation found 
-[here](https://en.cppreference.com/w/cpp/atomic/atomic). The single notable
-difference is the `cmpxchg_*` functions, which return a 2 element tuple. The
-first element is a `bool` representing whether the operation succeeded, and the
-second element is the original value of the object.
+[here](https://en.cppreference.com/w/cpp/atomic/atomic). 
+
+#### Compare Exchange (`cmpxchg_*`)
+
+The `cmpxchg_*` functions return `CmpxchgResult`. This has the attributes
+`.success: bool` which indicates whether the exchange took place, and 
+`.expected: T` which holds the original value of the atomic object.  
+The `cmpxchg_weak` function may fail spuriously, even if `expected` matches
+the actual value. It should be used as shown below:
+```python
+import atomics
+
+
+def atomic_mul(a: atomics.INTEGRAL, operand: int):
+    res = atomics.CmpxchgResult(success=False, expected=a.load())
+    while not res:
+        desired = res.expected * operand
+        res = a.cmpxchg_weak(expected=res.expected, desired=desired)
+```
+In a real implementation of `atomic_mul`, care should be taken to ensure that 
+`desired` fits in `a` (i.e. `desired.bit_length() < (a.width * 8)`, assuming 8
+bits in a byte).
+
+#### Exceptions
 
 All operations can raise `UnsupportedOperationException` (so check 
 `.ops_supported` if you need to be sure).
@@ -401,7 +421,7 @@ If you absolutely cannot get `build_patomic` to work, go to
 building it (making sure to build the shared library version), and then
 copy-paste the shared library file into `atomics._clib` manually.
 
-**NOTE**
+**NOTE:**
 Currently, the library builds a dummy extension in order to trick `setuptools`
 into building a non-purepython wheel. If you are ok with a purepython wheel,
 then feel free to remove the code for that from `setup.py` (at the bottom).  

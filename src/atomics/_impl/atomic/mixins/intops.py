@@ -3,6 +3,7 @@ from ...enums import MemoryOrder, OpType
 from ..core import AtomicCore
 
 from .byteops import ByteOperationsMixin
+from .cmpxchg import CmpxchgResult
 
 import sys
 from typing import Optional, Tuple
@@ -13,12 +14,12 @@ class _ImplIntegralOperationsMixin(ByteOperationsMixin):
     _core: AtomicCore
 
     def _impl_cmpxchg(self, optype: OpType, expected: int, desired: int,
-                      succ: MemoryOrder, fail: MemoryOrder) -> Tuple[bool, int]:
+                      succ: MemoryOrder, fail: MemoryOrder) -> CmpxchgResult[int]:
         expected = expected.to_bytes(self._core.width, sys.byteorder, signed=self._core.signed)
         desired = desired.to_bytes(self._core.width, sys.byteorder, signed=self._core.signed)
         ok, exp = super()._impl_cmpxchg(optype, expected, desired, succ, fail)
         exp = int.from_bytes(exp, sys.byteorder, signed=self._core.signed)
-        return ok, exp
+        return CmpxchgResult(ok, exp)
 
     def _impl_bin_ari(self, optype: OpType, value: Optional[int],
                       order: MemoryOrder) -> Optional[int]:
@@ -49,12 +50,12 @@ class IntegralOperationsMixin(_ImplIntegralOperationsMixin):
 
     def cmpxchg_weak(self, expected: int, desired: int,
                      success: MemoryOrder = MemoryOrder.SEQ_CST,
-                     failure: MemoryOrder = MemoryOrder.SEQ_CST) -> Tuple[bool, int]:
+                     failure: MemoryOrder = MemoryOrder.SEQ_CST) -> CmpxchgResult[int]:
         return self._impl_cmpxchg(OpType.CMPXCHG_WEAK, expected, desired, success, failure)
 
     def cmpxchg_strong(self, expected: int, desired: int,
                        success: MemoryOrder = MemoryOrder.SEQ_CST,
-                       failure: MemoryOrder = MemoryOrder.SEQ_CST) -> Tuple[bool, int]:
+                       failure: MemoryOrder = MemoryOrder.SEQ_CST) -> CmpxchgResult[int]:
         return self._impl_cmpxchg(OpType.CMPXCHG_STRONG, expected, desired, success, failure)
 
     def bin_or(self, value: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> None:

@@ -4,6 +4,8 @@ from ...pybuffer import PyBuffer
 
 from ..core import AtomicCore
 
+from .cmpxchg import CmpxchgResult
+
 from typing import Optional, Tuple
 
 
@@ -12,7 +14,7 @@ class _ImplByteOperationsMixin:
     _core: AtomicCore
 
     def _impl_cmpxchg(self, optype: OpType, expected: bytes, desired: bytes,
-                      succ: MemoryOrder, fail: MemoryOrder) -> Tuple[bool, bytes]:
+                      succ: MemoryOrder, fail: MemoryOrder) -> CmpxchgResult[bytes]:
         assert ("CMPXCHG" in optype.name)
         # check support
         fp = self._core.get_op_func(optype)
@@ -32,7 +34,7 @@ class _ImplByteOperationsMixin:
             with PyBuffer(des_mut, writeable=True, force=True) as des_buf:
                 # modifying exp and des contents directly is fine in this case
                 ok = fp(self._core.address, exp_buf.address, des_buf.address, succ.value, fail.value)
-        return bool(ok), exp_mut
+        return CmpxchgResult(bool(ok), exp_mut)
 
     def _impl_bit_test(self, optype: OpType, index: int, order: MemoryOrder) -> bool:
         assert ("BIT_TEST" in optype.name)
@@ -133,12 +135,12 @@ class ByteOperationsMixin(_ImplByteOperationsMixin):
 
     def cmpxchg_weak(self, expected: bytes, desired: bytes,
                      succ: MemoryOrder = MemoryOrder.SEQ_CST,
-                     fail: MemoryOrder = MemoryOrder.SEQ_CST) -> Tuple[bool, bytes]:
+                     fail: MemoryOrder = MemoryOrder.SEQ_CST) -> CmpxchgResult[bytes]:
         return self._impl_cmpxchg(OpType.CMPXCHG_WEAK, expected, desired, succ, fail)
 
     def cmpxchg_strong(self, expected: bytes, desired: bytes,
                        succ: MemoryOrder = MemoryOrder.SEQ_CST,
-                       fail: MemoryOrder = MemoryOrder.SEQ_CST) -> Tuple[bool, bytes]:
+                       fail: MemoryOrder = MemoryOrder.SEQ_CST) -> CmpxchgResult[bytes]:
         return self._impl_cmpxchg(OpType.CMPXCHG_STRONG, expected, desired, succ, fail)
 
     def bit_test(self, index: int, order: MemoryOrder = MemoryOrder.SEQ_CST) -> bool:

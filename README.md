@@ -9,13 +9,11 @@ atomic classes.
 
 The operations in these classes are both thread-safe and process-safe, 
 meaning that they can be used on a shared memory buffer for interprocess 
-communication.
-
-In summary, the atomic classes provided can be accessed and modified safely 
-from multiple threads and/or processes, with no other synchronisation required.
+communication (including with other languages such as C/C++).
 
 ## Table of Contents
 <!--ts-->
+* [Installing](#installing)
 * [Examples](#examples)
   * [Incorrect](#incorrect)
   * [Multi-Threading](#multi-threading)
@@ -35,6 +33,24 @@ from multiple threads and/or processes, with no other synchronisation required.
 * [Future Thoughts](#future-thoughts)
 * [Contributing](#contributing)
 <!--te-->
+
+## Installing
+
+Linux/MacOS:
+```shell
+$ python3 -m pip install atomics
+```
+Windows:
+```shell
+$ py -m pip install atomics
+```
+This library requires Python3.6+, and has a dependency on the `cffi` library.
+While the code here has no dependency on any implementation specific features,
+the `cffi` library functions used are likely to not work outside of CPython and 
+PyPy.
+
+If you need to build from source, check out the [Building](#building) section
+as there are additional requirements for that.
 
 ## Examples
 
@@ -96,7 +112,8 @@ if __name__ == "__main__":
 ### Multi-Processing
 This example is the counterpart to the above correct code, but using processes
 to demonstrate that atomic operations are also safe across processes. This 
-program is also correct, and `a` will equal `total` at the end.
+program is also correct, and `a` will equal `total` at the end. Is is also how
+one might communicate with processes written on other languages such as C/C++.
 ```python
 import atomics
 from multiprocessing import Process, shared_memory
@@ -384,6 +401,13 @@ If you absolutely cannot get `build_patomic` to work, go to
 building it (making sure to build the shared library version), and then
 copy-paste the shared library file into `atomics._clib` manually.
 
+**NOTE**
+Currently, the library builds a dummy extension in order to trick `setuptools`
+into building a non-purepython wheel. If you are ok with a purepython wheel,
+then feel free to remove the code for that from `setup.py` (at the bottom).  
+Otherwise, you will need a C99 compliant C compiler, and probably the
+development libraries/headers for whichever version of Python you're using.
+
 ## Future Thoughts
 - add docstrings
 - add tests
@@ -398,5 +422,5 @@ I don't have a guide for contributing yet. This section is here to make the
 following two points:
 - new operations must first be implemented in `patomic` before this library can
 be updated
-- new architectures must be supported in `patomic` (no change required in this
-library)
+- new architectures and widths must be supported in `patomic` (no change 
+required in this library)

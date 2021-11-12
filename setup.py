@@ -48,6 +48,8 @@ class BdistWheelCommand(bdist_wheel):
 
 class BuildPatomicCommand(Command):
 
+    verbose: int  # inherited
+
     logger: logging.Logger
 
     git_url: str
@@ -58,7 +60,7 @@ class BuildPatomicCommand(Command):
     cc_path: Optional[pathlib.Path]
     cc_standard: int
     cmake_args: str
-    log_level: int
+    linker_args: Optional[str]
 
     description = "Clone and build patomic shared library"
     user_options = [
@@ -70,16 +72,8 @@ class BuildPatomicCommand(Command):
         ("cc-path=", 'c', "[str] C compiler path"),
         ("cc-standard=", 's', "[int] ISO C standards version"),
         ("cmake-args=", 'a', "[str] Opaque string appended to cmake config command"),
-        ("log-level=", 'l', "[int] Log level")
+        ("linker-args=", 'l', "[str] Opaque string passed to shared library linker")
     ]
-
-    def obtain_env_options(self) -> None:
-        for name, _, _ in self.user_options:
-            attr_name = name.replace("-", "_")[:-1]
-            env_name = f"BUILD_PATOMIC_{attr_name.upper()}"
-            env = os.environ.get(env_name)
-            if env:
-                setattr(self, attr_name, env)
 
     def initialize_options(self) -> None:
         self.git_url = "https://github.com/doodspav/patomic"
@@ -90,10 +84,10 @@ class BuildPatomicCommand(Command):
         self.cc_path = None
         self.cc_standard = 11
         self.cmake_args = ""
-        self.log_level = logging.DEBUG if self._in_ci() else logging.INFO
+        self.linker_args = None
         # override defaults with env here
         # command line takes precedence over env
-        self.obtain_env_options()
+        self._obtain_env_options()
 
     def finalize_options(self) -> None:
         # coerce types
@@ -112,13 +106,20 @@ class BuildPatomicCommand(Command):
         if self.cc_standard in [89, 95]:
             self.cc_standard = 90
         # setup logger
-        self.log_level = int(self.log_level)
         self._init_logger()
         self._log_options()
 
+    def _obtain_env_options(self) -> None:
+        for name, _, _ in self.user_options:
+            attr_name = name.replace("-", "_")[:-1]
+            env_name = f"BUILD_PATOMIC_{attr_name.upper()}"
+            env = os.environ.get(env_name)
+            if env:
+                setattr(self, attr_name, env)
+
     def _init_logger(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(self.log_level)
+        self._set_verbosity()
         # setup formatting
         sh = logging.StreamHandler()
         template = "[build_patomic] [{levelname}] [{funcName}] {message}"
@@ -126,17 +127,32 @@ class BuildPatomicCommand(Command):
         sh.setFormatter(fmt)
         self.logger.addHandler(sh)
 
+    def _set_verbosity(self) -> None:
+        # get verbosity from env variable
+        env = os.environ.get("BUILD_PATOMIC_VERBOSE")
+        if env:
+            try:
+                v = int(env)
+            except ValueError:
+                v = 1
+            self.verbose = max(v, self.verbose)
+        # set log level
+        log_level = 0
+        if self.verbose <= 0:
+            log_level = logging.WARN
+        elif self.verbose == 1:
+            log_level = logging.INFO
+        elif self.verbose >= 2:
+            log_level = logging.DEBUG
+        self.logger.setLevel(log_level)
+
     def _log_options(self) -> None:
         opts = {}
         for name, _, _ in self.user_options:
             attr = name.replace("-", "_")[:-1]
             opts[attr] = getattr(self, attr)
+        opts["verbose"] = self.verbose
         self.logger.debug(str(opts))
-
-    @staticmethod
-    def _in_ci() -> bool:
-        """Checks if running in CI (via environment variable)"""
-        return bool(os.environ.get("CI"))
 
     @staticmethod
     def _cibw_check_win32_x86() -> bool:
@@ -174,9 +190,10 @@ class BuildPatomicCommand(Command):
         """Builds patomic in repo_dir and returns shared library file path"""
         assert repo_dir.is_dir()
         use_shell = (os.name == "nt")
-        fd_out = sys.stdout if self.logger.level <= logging.DEBUG else subprocess.DEVNULL
+        fd_out = sys.stdout if self.logger.level == logging.DEBUG else subprocess.DEVNULL
         # configure build
         os.mkdir(str(repo_dir / "build"))
+        self.logger.debug(f"Created: {str(repo_dir / 'build')}")
         cmd_config = [
             "cmake", "-S", str(repo_dir), "-B", str(repo_dir / "build"),
             f"-DCMAKE_BUILD_TYPE={self.build_type}",
@@ -186,9 +203,14 @@ class BuildPatomicCommand(Command):
         if self.cc_path:
             self.logger.info(f"C compiler set to {self.cc_path}")
             cmd_config.append(f"-DCMAKE_C_COMPILER={str(self.cc_path)}")
+        if self.linker_args:
+            self.logger.info(f"Linker args: {self.linker_args}")
+            # cmd_config += ["-DCMAKE_SHARED_LINKER_FLAGS", self.linker_args]
+            cmd_config.append(f"-DCMAKE_SHARED_LINKER_FLAGS={self.linker_args}")
         if self._cibw_check_win32_x86():
             self.logger.info(f"Running under win32-x86 on CIBW - using '-A Win32'")
-            cmd_config.append("-A Win32")
+            cmd_config.append("-AWin32")
+        self.logger.debug(f"Configuring CMake as: {cmd_config}")
         subprocess.check_call(cmd_config, stdout=fd_out, shell=use_shell)
         self.logger.debug("Configured CMake for patomic")
         # build
@@ -236,8 +258,8 @@ class BuildPatomicCommand(Command):
                 self.logger.info(f"Copying over shared library file to: {str(self.dest_dir)}")
                 os.rename(str(lib_path), str(self.dest_dir / lib_path.name))
                 # log result
-                self.logger.info("Copied over file successfully")
                 self.logger.debug(f"Files in {str(self.dest_dir)}: {list(self.dest_dir.iterdir())}")
+                self.logger.info("Copied over file successfully")
         except PermissionError:
             self.logger.info(f"Could not close temporary directory")
 

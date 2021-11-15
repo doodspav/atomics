@@ -186,33 +186,44 @@ class BuildPatomicCommand(Command):
         if not (clone_into / "src").is_dir():
             repo.git.checkout("devel")
 
-    def build_patomic(self, repo_dir: pathlib.Path) -> pathlib.Path:
-        """Builds patomic in repo_dir and returns shared library file path"""
+    def config_patomic(self, repo_dir: pathlib.Path) -> None:
+        """Configures CMake for in repo_dir"""
         assert repo_dir.is_dir()
         use_shell = (os.name == "nt")
         fd_out = sys.stdout if self.logger.level == logging.DEBUG else subprocess.DEVNULL
-        # configure build
+        # setup build dir
         os.mkdir(str(repo_dir / "build"))
         self.logger.debug(f"Created: {str(repo_dir / 'build')}")
+        # setup cmd base
         cmd_config = [
             "cmake", "-S", str(repo_dir), "-B", str(repo_dir / "build"),
             f"-DCMAKE_BUILD_TYPE={self.build_type}",
             f"-DCMAKE_C_STANDARD={self.cc_standard}",
             "-DBUILD_SHARED_LIBS=ON"
         ]
+        # build up cmd
         if self.cc_path:
-            self.logger.info(f"C compiler set to {self.cc_path}")
+            self.logger.info(f"C compiler set to: {self.cc_path}")
             cmd_config.append(f"-DCMAKE_C_COMPILER={str(self.cc_path)}")
         if self.linker_args:
             self.logger.info(f"Linker args: {self.linker_args}")
-            # cmd_config += ["-DCMAKE_SHARED_LINKER_FLAGS", self.linker_args]
             cmd_config.append(f"-DCMAKE_SHARED_LINKER_FLAGS={self.linker_args}")
         if self._cibw_check_win32_x86():
-            self.logger.info(f"Running under win32-x86 on CIBW - using '-A Win32'")
+            self.logger.info("Running under win32-x86 on CIBW - using '-A Win32'")
             cmd_config.append("-AWin32")
+        if self.cmake_args:
+            self.logger.info(f"Appending CMake args: {self.cmake_args}")
+            cmd_config.append(self.cmake_args)
+        # configure cmake
         self.logger.debug(f"Configuring CMake as: {cmd_config}")
         subprocess.check_call(cmd_config, stdout=fd_out, shell=use_shell)
         self.logger.debug("Configured CMake for patomic")
+
+    def build_patomic(self, repo_dir: pathlib.Path) -> pathlib.Path:
+        """Builds patomic in configured repo_dir and returns shared library file path"""
+        assert repo_dir.is_dir()
+        use_shell = (os.name == "nt")
+        fd_out = sys.stdout if self.logger.level == logging.DEBUG else subprocess.DEVNULL
         # build
         build_path = repo_dir / "build"
         cmd_build = ["cmake", "--build", str(build_path), "--config", self.build_type]
@@ -244,6 +255,8 @@ class BuildPatomicCommand(Command):
                 repo_path = pathlib.Path(temp_dir)
                 self.logger.info("Cloning repo")
                 self.clone_patomic(repo_path)
+                self.logger.info("Configuring CMake")
+                self.config_patomic(repo_path)
                 self.logger.info("Building shared library")
                 lib_path = self.build_patomic(repo_path)
                 self.logger.info("Built shared library successfully")
@@ -279,18 +292,18 @@ with open("dummy.c", "w") as f:
     f.write("extern int PyInit_dummy(void) { return 0; }\n")
 
 
-setup(
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
-    package_data={"atomics": ["_clib/*"]},
-    cmdclass={
-        "bdist_wheel": BdistWheelCommand,
-        "build_patomic": BuildPatomicCommand,
-        "build_py": BuildPyCommand
-    },
-    ext_modules=[Extension(name="dummy", sources=["dummy.c"])]
-)
-
-
-# cleanup extension
-os.remove("dummy.c")
+try:
+    setup(
+        packages=find_packages(where="src"),
+        package_dir={"": "src"},
+        package_data={"atomics": ["_clib/*"]},
+        cmdclass={
+            "bdist_wheel": BdistWheelCommand,
+            "build_patomic": BuildPatomicCommand,
+            "build_py": BuildPyCommand
+        },
+        ext_modules=[Extension(name="dummy", sources=["dummy.c"])]
+    )
+finally:
+    # cleanup extension
+    os.remove("dummy.c")

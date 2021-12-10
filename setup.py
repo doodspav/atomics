@@ -181,10 +181,11 @@ class BuildPatomicCommand(Command):
         if self.git_tag:
             self.logger.info(f"Checkout out user provided tag: {self.git_tag}")
             repo.git.checkout(self.git_tag)
-        # switch to devel branch if tag or default branch isn't populated
-        self.logger.info("Switching to devel branch")
+        # switch to backup if provided tag or default branch isn't populated
+        backup = "v0.2.2"  # frozen until patomic has a stable release
+        self.logger.info(f"Switching to {backup} tag")
         if not (clone_into / "src").is_dir():
-            repo.git.checkout("devel")
+            repo.git.checkout(backup)
 
     def config_patomic(self, repo_dir: pathlib.Path) -> None:
         """Configures CMake for in repo_dir"""

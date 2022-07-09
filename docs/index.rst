@@ -27,6 +27,15 @@ Welcome to atomics documentation!
 
 .. toctree::
    :maxdepth: 1
+   :caption: Notes
+
+   notes/api_compatability
+   notes/perf
+   notes/faq
+   notes/changelog
+
+.. toctree::
+   :maxdepth: 1
    :caption: Developer Documentation
 
    developer_documentation/building
@@ -41,10 +50,4 @@ Welcome to atomics documentation!
 
    api_documentation/public_api
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. todolist::

@@ -1,0 +1,5 @@
+Operations
+=================
+
+.. todo::
+   Atomic operations.

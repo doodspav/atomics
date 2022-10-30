@@ -1,4 +1,4 @@
-from align cimport *
+# from align cimport *
 
 
 cdef extern from "<patomic/types/transaction.h>":
@@ -10,14 +10,14 @@ cdef extern from "<patomic/types/transaction.h>":
     # TRANSACTION FLAG HOLDER
 
     ctypedef struct patomic_transaction_padded_flag_holder_t:
-        unsigned char _padding_pre[PATOMIC_MAX_CACHE_LINE_SIZE - 1]
+        # unsigned char _padding_pre[PATOMIC_MAX_CACHE_LINE_SIZE - 1]
         patomic_transaction_flag_t flag
-        unsigned char _padding_post[PATOMIC_MAX_CACHE_LINE_SIZE]
+        # unsigned char _padding_post[PATOMIC_MAX_CACHE_LINE_SIZE]
 
     ctypedef struct patomic_transaction_padded_flag_holder_abi_unstable_t:
-        unsigned char _padding_pre[PATOMIC_MAX_CACHE_LINE_SIZE_ABI_UNSTABLE - 1]
+        # unsigned char _padding_pre[PATOMIC_MAX_CACHE_LINE_SIZE_ABI_UNSTABLE - 1]
         patomic_transaction_flag_t flag
-        unsigned char _padding_post[PATOMIC_MAX_CACHE_LINE_SIZE_ABI_UNSTABLE]
+        # unsigned char _padding_post[PATOMIC_MAX_CACHE_LINE_SIZE_ABI_UNSTABLE]
 
     # TRANSACTION CMPXCHG
 

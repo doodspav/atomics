@@ -1,4 +1,4 @@
-from transaction cimport *
+from .transaction cimport *
 
 
 cdef extern from "<patomic/types/ops.h>":

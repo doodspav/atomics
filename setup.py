@@ -33,7 +33,7 @@ include_dir = pathlib.Path.cwd().joinpath("ext/patomic/installdir/include").abso
 library_dir = pathlib.Path.cwd().joinpath("ext/patomic/installdir/lib").absolute()
 
 
-with tempfile.TemporaryDirectory(prefix="__cython") as td:
+with tempfile.TemporaryDirectory(suffix="__cython") as td:
 
     name = "patomic_version_check.pyx"
     path = pathlib.Path(td).joinpath(name)

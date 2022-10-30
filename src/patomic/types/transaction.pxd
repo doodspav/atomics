@@ -1,4 +1,4 @@
-# from align cimport *
+# from .align cimport *
 
 
 cdef extern from "<patomic/types/transaction.h>":

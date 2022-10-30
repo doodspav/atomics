@@ -43,14 +43,14 @@ cdef extern from "<patomic/types/transaction.h>":
     # TRANSACTION STATUS
 
     ctypedef enum patomic_transaction_status_t:
-        patomic_TSUCCESS = 0x0
-        patomic_TABORTED = 0x1
-        patomic_TABORT_EXPLICIT = 0x2  | patomic_TABORTED
-        patomic_TABORT_CONFLICT = 0x4  | patomic_TABORTED
-        patomic_TABORT_CAPACITY = 0x8  | patomic_TABORTED
-        patomic_TABORT_NESTED   = 0x10 | patomic_TABORTED
-        patomic_TABORT_DEBUG    = 0x20 | patomic_TABORTED
-        patomic_TABORT_INT      = 0x40 | patomic_TABORTED
+        patomic_TSUCCESS
+        patomic_TABORTED
+        patomic_TABORT_EXPLICIT
+        patomic_TABORT_CONFLICT
+        patomic_TABORT_CAPACITY
+        patomic_TABORT_NESTED
+        patomic_TABORT_DEBUG
+        patomic_TABORT_INT
 
     # TRANSACTION RESULT
 

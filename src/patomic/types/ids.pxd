@@ -17,18 +17,14 @@ cdef extern from "<patomic/types/ids.h>":
 
     ctypedef enum patomic_kind_t:
         # kind - single bit
-        patomic_kind_UNKN = 0x0
-        patomic_kind_DYN  = 0x1
-        patomic_kind_OS   = 0x2
-        patomic_kind_LIB  = 0x4
-        patomic_kind_BLTN = 0x8
-        patomic_kind_ASM  = 0x10
+        patomic_kind_UNKN
+        patomic_kind_DYN
+        patomic_kind_OS
+        patomic_kind_LIB
+        patomic_kind_BLTN
+        patomic_kind_ASM
         # kinds - multiple bits
-        patomic_kinds_ALL = patomic_kind_DYN  | \
-                            patomic_kind_OS   | \
-                            patomic_kind_LIB  | \
-                            patomic_kind_BLTN | \
-                            patomic_kind_ASM
+        patomic_kinds_ALL
 
     # IMPLEMENTATION GET
 

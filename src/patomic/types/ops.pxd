@@ -25,13 +25,13 @@ cdef extern from "<patomic/types/ops.h>":
     ctypedef struct patomic_ops_arithmetic_t:
         # in place
         patomic_opsig_void_t fp_add
-        patomic_opsig_void_t fp_add
+        patomic_opsig_void_t fp_sub
         patomic_opsig_void_noarg_t fp_inc
         patomic_opsig_void_noarg_t fp_dec
         patomic_opsig_void_noarg_t fp_neg
         # fetch
         patomic_opsig_fetch_t fp_fetch_add
-        patomic_opsig_fetch_t fp_fetch_add
+        patomic_opsig_fetch_t fp_fetch_sub
         patomic_opsig_fetch_noarg_t fp_fetch_inc
         patomic_opsig_fetch_noarg_t fp_fetch_dec
         patomic_opsig_fetch_noarg_t fp_fetch_neg
@@ -90,13 +90,13 @@ cdef extern from "<patomic/types/ops.h>":
     ctypedef struct patomic_ops_explicit_arithmetic_t:
         # in place
         patomic_opsig_explicit_void_t fp_add
-        patomic_opsig_explicit_void_t fp_add
+        patomic_opsig_explicit_void_t fp_sub
         patomic_opsig_explicit_void_noarg_t fp_inc
         patomic_opsig_explicit_void_noarg_t fp_dec
         patomic_opsig_explicit_void_noarg_t fp_neg
         # fetch
         patomic_opsig_explicit_fetch_t fp_fetch_add
-        patomic_opsig_explicit_fetch_t fp_fetch_add
+        patomic_opsig_explicit_fetch_t fp_fetch_sub
         patomic_opsig_explicit_fetch_noarg_t fp_fetch_inc
         patomic_opsig_explicit_fetch_noarg_t fp_fetch_dec
         patomic_opsig_explicit_fetch_noarg_t fp_fetch_neg

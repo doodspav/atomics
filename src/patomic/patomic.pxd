@@ -1,13 +1,51 @@
-cdef extern from "<patomic/patomic_version.h>":
+from .types.align cimport *
+from .types.memory_order cimport *
+from .types.ops cimport *
+from .types.transaction cimport *
 
-    const char * PATOMIC_VERSION
 
-    int PATOMIC_VERSION_MAJOR
-    int PATOMIC_VERSION_MINOR
-    int PATOMIC_VERSION_PATCH
+cdef extern from "<patomic/patomic.h>":
 
-    int patomic_version_major()
-    int patomic_version_minor()
-    int patomic_version_patch()
+    # ATOMIC STRUCTS
 
-    int patomic_version_compatible_with(int major, int minor)
+    ctypedef struct patomic_t:
+        patomic_ops_t ops
+        patomic_align_t align
+
+    ctypedef struct patomic_explicit_t:
+        patomic_ops_explicit_t ops
+        patomic_align_t align
+
+    ctypedef struct patomic_transaction_t:
+        patomic_ops_transaction_ops
+        patomic_align_t align
+        patomic_transaction_recommended_t recommended
+        patomic_transaction_safe_string_t sstring
+
+    # COMBINE
+
+    void patomic_combine(patomic_t *priority, const patomic_t *other)
+    void patomic_combine_explicit(patomic_explicit_t *priority, const patomic_explicit_t *other)
+
+    # CREATE
+
+    patomic_t patomic_create(
+        size_t byte_width,
+        patomic_memory_order_t order,
+        unsigned int opts,
+        unsigned int kinds,
+        unsigned long ids
+    )
+
+    patomic_explicit_t patomic_create_explicit(
+        size_t byte_width,
+        unsigned int opts,
+        unsigned int kinds,
+        unsigned long ids
+    )
+
+    patomic_transaction_t patomic_create_transaction(
+        unsigned int opts,
+        unsigned int kinds,
+        unsigned long ids
+    )

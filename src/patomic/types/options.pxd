@@ -1,4 +1,4 @@
-cdef extern from "<patomic/types/options.h>":
+cdef extern from "<patomic/types/options.h>" nogil:
 
     # OPTIONS
 

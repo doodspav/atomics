@@ -1,7 +1,7 @@
 # from .align cimport *
 
 
-cdef extern from "<patomic/types/transaction.h>":
+cdef extern from "<patomic/types/transaction.h>" nogil:
 
     # TRANSACTION FLAG
 

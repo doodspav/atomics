@@ -1,4 +1,4 @@
-cdef extern from "<patomic/types/memory_order.h>":
+cdef extern from "<patomic/types/memory_order.h>" nogil:
 
     # MEMORY ORDERS
 

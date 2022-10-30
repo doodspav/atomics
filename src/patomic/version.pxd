@@ -1,4 +1,4 @@
-cdef extern from "<patomic/patomic_version.h>":
+cdef extern from "<patomic/patomic_version.h>" nogil:
 
     const char * PATOMIC_VERSION
 

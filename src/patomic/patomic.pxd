@@ -4,7 +4,7 @@ from .types.ops cimport *
 from .types.transaction cimport *
 
 
-cdef extern from "<patomic/patomic.h>":
+cdef extern from "<patomic/patomic.h>" nogil:
 
     # ATOMIC STRUCTS
 
@@ -17,7 +17,7 @@ cdef extern from "<patomic/patomic.h>":
         patomic_align_t align
 
     ctypedef struct patomic_transaction_t:
-        patomic_ops_transaction_ops
+        patomic_ops_transaction_t ops
         patomic_align_t align
         patomic_transaction_recommended_t recommended
         patomic_transaction_safe_string_t sstring

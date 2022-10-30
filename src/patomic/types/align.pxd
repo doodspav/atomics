@@ -1,4 +1,4 @@
-cdef extern from "<patomic/types/align.h>":
+cdef extern from "<patomic/types/align.h>" nogil:
 
     # ALIGN
 

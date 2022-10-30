@@ -1,7 +1,7 @@
 from .transaction cimport *
 
 
-cdef extern from "<patomic/types/ops.h>":
+cdef extern from "<patomic/types/ops.h>" nogil:
 
     # IMPLICIT FUNCTIONS
 

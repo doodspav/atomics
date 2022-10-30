@@ -1,4 +1,4 @@
-cdef extern from "<patomic/types/ids.h>":
+cdef extern from "<patomic/types/ids.h>" nogil:
 
     # IMPLEMENTATION IDS
 

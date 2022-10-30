@@ -1,7 +1,7 @@
 from .ops cimport *
 
 
-cdef extern from "<patomic/types/feature_check.h>":
+cdef extern from "<patomic/types/feature_check.h>" nogil:
 
     # OPCAT
 

@@ -1,6 +1,6 @@
 import enum
 
-from _impl.patomic.types.memory_order cimport *
+from atomics._atomics.patomic cimport *
 
 
 cdef class _CEnumBase:

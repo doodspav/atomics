@@ -1,17 +1,31 @@
-from patomic.patomic cimport *
+import enum
+
+from _impl.patomic.types.memory_order cimport *
 
 
-cpdef version():
-    return PATOMIC_VERSION
+cdef class _CEnumBase:
 
-cpdef version_major():
-    return PATOMIC_VERSION_MAJOR
+    cdef int c_value
 
-cpdef version_minor():
-    return PATOMIC_VERSION_MINOR
+    def __cinit__(self, value):
+        self.c_value = value
 
-cpdef version_patch():
-    return PATOMIC_VERSION_PATCH
 
-cpdef version_compatible_with(int major, int minor):
-    return bool(patomic_version_compatible_with(major, minor))
+class MemoryOrder(_CEnumBase, enum.Enum):
+
+    RELAXED = patomic_RELAXED
+    # CONSUME = patomic_CONSUME
+    ACQUIRE = patomic_ACQUIRE
+    RELEASE = patomic_RELEASE
+    ACQ_REL = patomic_ACQ_REL
+    SEQ_CST = patomic_SEQ_CST
+
+    def __init__(self, value):
+        self.value = value
+
+
+cdef c_get_value(order: MemoryOrder):
+    return order.c_value
+
+cpdef get_value(order: MemoryOrder):
+    return c_get_value(order)

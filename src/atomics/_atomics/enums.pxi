@@ -91,6 +91,8 @@ cdef extern from * nogil:
     static const unsigned long _optype_FETCH_INC = 1ul << 24ul;
     static const unsigned long _optype_FETCH_DEC = 1ul << 25ul;
     static const unsigned long _optype_FETCH_NEG = 1ul << 26ul;
+    /* extra */
+    static const unsigned long _optype_HIGHEST_BIT_POSITION = 27ul;
     """
     # ldst
     const unsigned long _optype_LOAD
@@ -126,20 +128,32 @@ cdef extern from * nogil:
     const unsigned long _optype_FETCH_INC
     const unsigned long _optype_FETCH_DEC
     const unsigned long _optype_FETCH_NEG
+    # extra
+    const unsigned long _optype_HIGHEST_BIT_POSITION
 
 
 cdef class _OpType:
 
     cdef readonly unsigned long value
 
+    @staticmethod
+    def _as_bin(value: int, fixed: bool = True) -> str:
+        count = _optype_HIGHEST_BIT_POSITION + 2  # for 0b characters
+        val_bin = format(value, f"#0{count}b") if fixed else bin(value)
+        for i in range(len(val_bin) - 4, 2, -4):
+            val_bin = val_bin[:i] + "'" + val_bin[i:]
+        return val_bin
+
     def __cinit__(self, unsigned long value):
+        cdef unsigned long offset = _optype_HIGHEST_BIT_POSITION
+        cdef unsigned long extra_bits = (value >> offset) << offset;
+        if extra_bits != 0:
+            beb = _OpType._as_bin(extra_bits >> offset, fixed=False)
+            raise ValueError(f"Remaining set bits {beb} << {offset} from value do not correspond to valid OpType.")
         self.value = value
 
     def __repr__(self) -> str:
-        val_bin = format(self.value, "#029b")  # 29 because number of bits (27) + 2
-        for i in range(len(val_bin) - 4, 2, -4):
-            val_bin = val_bin[:i] + "'" + val_bin[i:]
-        return f"{self.__class__.__qualname__}(value={val_bin})"
+        return f"{self.__class__.__qualname__}(value={_OpType._as_bin(self.value)})"
 
 
 class OpType(enum.Flag):

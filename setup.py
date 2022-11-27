@@ -35,20 +35,28 @@ library_dir = pathlib.Path.cwd().joinpath("ext/patomic/installdir/lib").absolute
 
 with tempfile.TemporaryDirectory(suffix="__cython") as td:
 
-    name = "patomic_version_check.pyx"
-    path = pathlib.Path(td).joinpath(name)
+    vc_name = "patomic_version_check.pyx"
+    vc_path = pathlib.Path(td).joinpath(vc_name)
 
-    with open(path, "w+") as f:
+    with open(vc_path, "w+") as f:
         f.write(cython_patomic_version_check)
 
-    atomics = Extension(
-        name="atomics",
-        sources=["src/atomics.pyx", str(path)],
-        include_dirs=[str(include_dir)],
-        library_dirs=[str(library_dir)],
-        libraries=["patomic"]
-    )
+    extensions = []
+    extension_paths = [
+        "src/atomics/_atomics/atomics.pyx",
+        "src/atomics/_atomics/enums.pyx",
+    ]
+
+    for ep in extension_paths:
+        ext = Extension(
+            name=str(pathlib.Path(ep).stem),
+            sources=[ep, str(vc_path)],
+            include_dirs=[str(include_dir)],
+            library_dirs=[str(library_dir)],
+            libraries=["patomic"]
+        )
+        extensions.append(ext)
 
     setup(
-        ext_modules=cythonize(atomics, language_level=3)
+        ext_modules=cythonize(extensions, language_level=3)
     )

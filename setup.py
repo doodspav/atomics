@@ -1,7 +1,7 @@
 import pathlib
+import setuptools
 import tempfile
 
-from setuptools import Extension, setup
 from Cython.Build import cythonize
 
 
@@ -11,52 +11,50 @@ patomic_version_minor = 5
 patomic_version_patch = 1
 
 
-# currently version is required to match exactly
-cython_patomic_version_check = f"""
-cdef extern from *: 
-    \"""
-    #include <patomic/patomic_version.h>
-    
-    #if PATOMIC_VERSION_MAJOR != {patomic_version_major}
-        #error Incompatible patomic major version. Required: =={patomic_version_major}.
-    #elif PATOMIC_VERSION_MINOR != {patomic_version_minor}
-        #error Incompatible patomic minor version. Required: =={patomic_version_minor}.
-    #elif PATOMIC_VERSION_PATCH != {patomic_version_patch}
-        #error Incompatible patomic patch version. Required: =={patomic_version_patch}.
-    #endif
-    \"""
-"""
-
-
 # installed patomic paths
 include_dir = pathlib.Path.cwd().joinpath("ext/patomic/installdir/include").absolute()
 library_dir = pathlib.Path.cwd().joinpath("ext/patomic/installdir/lib").absolute()
 
 
+# extension params
+extension_paths = [pathlib.Path.cwd().joinpath(ep).absolute() for ep in [
+    "src/atomics/_atomics/atomics.pyx",
+    "src/atomics/_atomics/enums.pyx"
+]]
+define_macros = [
+    ("ATOMICS_PATOMIC_VERSION_MAJOR", patomic_version_major),
+    ("ATOMICS_PATOMIC_VERSION_MINOR", patomic_version_minor),
+    ("ATOMICS_PATOMIC_VERSION_PATCH", patomic_version_patch)
+]
+
+
+# we need to provide a second empty source file for each extension
+# otherwise relative cimports will not work (no idea why)
 with tempfile.TemporaryDirectory(suffix="__cython") as td:
 
-    vc_name = "patomic_version_check.pyx"
-    vc_path = pathlib.Path(td).joinpath(vc_name)
-
-    with open(vc_path, "w+") as f:
-        f.write(cython_patomic_version_check)
-
+    # create all extensions
     extensions = []
-    extension_paths = [
-        "src/atomics/_atomics/atomics.pyx",
-        "src/atomics/_atomics/enums.pyx",
-    ]
-
     for ep in extension_paths:
-        ext = Extension(
-            name=str(pathlib.Path(ep).stem),
-            sources=[ep, str(vc_path)],
+
+        # each extension module needs its own temporary path
+        # if they are all the same, then we will get an error about sorting dicts
+        temp_name = f"empty_{ep.stem}.pyx"
+        temp_path = pathlib.Path(td).joinpath(temp_name).absolute()
+
+        with open(temp_path, "w+") as f:
+            f.write("")
+
+        ext = setuptools.Extension(
+            name=str(ep.stem),
+            sources=[str(ep), str(temp_path)],
             include_dirs=[str(include_dir)],
             library_dirs=[str(library_dir)],
-            libraries=["patomic"]
+            libraries=["patomic"],
+            define_macros=define_macros
         )
         extensions.append(ext)
 
-    setup(
+    # run setup on all extensions
+    setuptools.setup(
         ext_modules=cythonize(extensions, language_level=3)
     )

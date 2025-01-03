@@ -77,6 +77,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: artifact-${{ matrix.config.name }}
           path: ./wheelhouse/*.whl
 
   build_sdist:
@@ -100,6 +101,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: artifact-source
           path: dist/*.tar.gz
 
   upload_pypi:
@@ -107,6 +109,12 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: artifact
+          pattern: artifact-*
+          delete-merged: 'true'
+
       - uses: actions/download-artifact@v4
         with:
           name: artifact

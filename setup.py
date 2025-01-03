@@ -163,6 +163,12 @@ class BuildPatomicCommand(Command):
         env = os.environ.get("CIBW_MC_NAME")
         return type(env) is str and env.lower() == "win32-x86"
 
+    @staticmethod
+    def _cibw_check_macos_any() -> bool:
+        """Checks if CIBW is building for macos-*"""
+        env = os.environ.get("CIBW_MC_NAME")
+        return type(env) is str and env.lower().startswith("macos-")
+
     def get_patomic_libs(self, dir_path: pathlib.Path) -> [pathlib.Path]:
         """Returns a list of patomic shared library files found in dir_path"""
         assert dir_path.is_dir()
@@ -212,6 +218,9 @@ class BuildPatomicCommand(Command):
         if self._cibw_check_win32_x86():
             self.logger.info("Running under win32-x86 on CIBW - using '-A Win32'")
             cmd_config.append("-AWin32")
+        if self._cibw_check_macos_any():
+            self.logger.info("Running under macos-* on CIBW - adding cxx flag -Wno-deprecated-copy")
+            cmd_config.append('-DCMAKE_CXX_FLAGS_INIT="-Wno-deprecated-copy"')
         if self.cmake_args:
             self.logger.info(f"Appending CMake args: {self.cmake_args}")
             cmd_config.append(self.cmake_args)

@@ -201,7 +201,8 @@ class BuildPatomicCommand(Command):
             "cmake", "-S", str(repo_dir), "-B", str(repo_dir / "build"),
             f"-DCMAKE_BUILD_TYPE={self.build_type}",
             f"-DCMAKE_C_STANDARD={self.cc_standard}",
-            "-DBUILD_SHARED_LIBS=ON"
+            "-DBUILD_SHARED_LIBS=ON",
+            "-DBUILD_TESTING=OFF"
         ]
         # build up cmd
         if self.cc_path:

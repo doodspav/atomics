@@ -77,7 +77,9 @@ class BuildPatomicCommand(Command):
 
     def initialize_options(self) -> None:
         self.git_url = "https://github.com/doodspav/patomic"
-        self.git_tag = None
+        # pin to patomic v0.2.2 until we migrate to stable release
+        # self.git_tag = None
+        self.git_tag = "v0.2.2"
         self.dest_dir = here / "src" / "atomics" / "_clib"
         self.build_type = "RelWithDebInfo"
         self.force_replace = False
@@ -181,11 +183,8 @@ class BuildPatomicCommand(Command):
         if self.git_tag:
             self.logger.info(f"Checkout out user provided tag: {self.git_tag}")
             repo.git.checkout(self.git_tag)
-        # switch to backup if provided tag or default branch isn't populated
-        backup = "v0.2.2"  # frozen until patomic has a stable release
-        self.logger.info(f"Switching to {backup} tag")
-        if not (clone_into / "src").is_dir():
-            repo.git.checkout(backup)
+            if not (clone_into / "src").is_dir():
+                self.logger.warning(f"No src directory found in checked out tag: {self.git_tag}")
 
     def config_patomic(self, repo_dir: pathlib.Path) -> None:
         """Configures CMake for in repo_dir"""

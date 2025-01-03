@@ -113,7 +113,6 @@ jobs:
         with:
           name: artifact
           pattern: artifact-*
-          delete-merged: 'true'
 
       - uses: actions/download-artifact@v4
         with:

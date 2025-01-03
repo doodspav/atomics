@@ -21,47 +21,53 @@ jobs:
           - name: "win32-amd64"
             os: windows-2019
             arch: AMD64
+          - name: "win32-arm64"
+            os: windows-2019
+            arch: ARM64
 
           - name: "macos-x84_64"
-            os: macos-10.15
+            os: macos-15
             arch: x86_64
+          - name: "macos-arm64"
+            os: macos-15
+            arch: arm64
           - name: "macos-universal2"
-            os: macos-10.15
+            os: macos-15
             arch: universal2
 
           - name: "linux-i386"
-            os: ubuntu-20.04
+            os: ubuntu-latest
             arch: i686
             platform: i386
           - name: "linux-x86_64"
-            os: ubuntu-20.04
+            os: ubuntu-latest
             arch: x86_64
             platform: x86_64
           - name: "linux-aarch64"
-            os: ubuntu-20.04
+            os: ubuntu-latest
             arch: aarch64
             platform: aarch64
           - name: "linux-ppc64le"
-            os: ubuntu-20.04
+            os: ubuntu-latest
             arch: ppc64le
             platform: ppc64le
           - name: "linux-s390x"
-            os: ubuntu-20.04
+            os: ubuntu-latest
             arch: s390x
             platform: s390x
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
 
       - name: Set up QEMU
         if: ${{ startsWith(matrix.config.os, 'ubuntu') }}
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.config.platform }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.2.2
+        uses: pypa/cibuildwheel@v2.22.0
         env:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_ARCHS: ${{ matrix.config.arch }}

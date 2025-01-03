@@ -28,12 +28,12 @@ jobs:
           - name: "macos-x84_64"
             os: macos-15
             arch: x86_64
-          # - name: "macos-arm64"
-          #   os: macos-15
-          #   arch: arm64
-          # - name: "macos-universal2"
-          #   os: macos-15
-          #   arch: universal2
+          - name: "macos-arm64"
+            os: macos-15
+            arch: arm64
+          - name: "macos-universal2"
+            os: macos-15
+            arch: universal2
 
           - name: "linux-i386"
             os: ubuntu-latest

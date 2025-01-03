@@ -7,6 +7,7 @@ import git
 import logging
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -130,22 +131,23 @@ class BuildPatomicCommand(Command):
         self.logger.addHandler(sh)
 
     def _set_verbosity(self) -> None:
-        # get verbosity from env variable
-        env = os.environ.get("BUILD_PATOMIC_VERBOSE")
-        if env:
-            try:
-                v = int(env)
-            except ValueError:
-                v = 1
-            self.verbose = max(v, self.verbose)
-        # set log level
-        log_level = 0
-        if self.verbose <= 0:
-            log_level = logging.WARN
-        elif self.verbose == 1:
-            log_level = logging.INFO
-        elif self.verbose >= 2:
-            log_level = logging.DEBUG
+        # # get verbosity from env variable
+        # env = os.environ.get("BUILD_PATOMIC_VERBOSE")
+        # if env:
+        #     try:
+        #         v = int(env)
+        #     except ValueError:
+        #         v = 1
+        #     self.verbose = max(v, self.verbose)
+        # # set log level
+        # log_level = 0
+        # if self.verbose <= 0:
+        #     log_level = logging.WARN
+        # elif self.verbose == 1:
+        #     log_level = logging.INFO
+        # elif self.verbose >= 2:
+        #     log_level = logging.DEBUG
+        log_level = logging.DEBUG
         self.logger.setLevel(log_level)
 
     def _log_options(self) -> None:
@@ -199,7 +201,8 @@ class BuildPatomicCommand(Command):
             "cmake", "-S", str(repo_dir), "-B", str(repo_dir / "build"),
             f"-DCMAKE_BUILD_TYPE={self.build_type}",
             f"-DCMAKE_C_STANDARD={self.cc_standard}",
-            "-DBUILD_SHARED_LIBS=ON"
+            "-DBUILD_SHARED_LIBS=ON",
+            "-DBUILD_TESTING=OFF"
         ]
         # build up cmd
         if self.cc_path:
@@ -269,7 +272,7 @@ class BuildPatomicCommand(Command):
                         except PermissionError:
                             self.logger.info(f"Could not remove file {str(elp)}")
                 self.logger.info(f"Copying over shared library file to: {str(self.dest_dir)}")
-                os.rename(str(lib_path), str(self.dest_dir / lib_path.name))
+                shutil.move(str(lib_path), str(self.dest_dir / lib_path.name))
                 # log result
                 self.logger.debug(f"Files in {str(self.dest_dir)}: {list(self.dest_dir.iterdir())}")
                 self.logger.info("Copied over file successfully")

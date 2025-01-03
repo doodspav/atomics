@@ -131,22 +131,23 @@ class BuildPatomicCommand(Command):
         self.logger.addHandler(sh)
 
     def _set_verbosity(self) -> None:
-        # get verbosity from env variable
-        env = os.environ.get("BUILD_PATOMIC_VERBOSE")
-        if env:
-            try:
-                v = int(env)
-            except ValueError:
-                v = 1
-            self.verbose = max(v, self.verbose)
-        # set log level
-        log_level = 0
-        if self.verbose <= 0:
-            log_level = logging.WARN
-        elif self.verbose == 1:
-            log_level = logging.INFO
-        elif self.verbose >= 2:
-            log_level = logging.DEBUG
+        # # get verbosity from env variable
+        # env = os.environ.get("BUILD_PATOMIC_VERBOSE")
+        # if env:
+        #     try:
+        #         v = int(env)
+        #     except ValueError:
+        #         v = 1
+        #     self.verbose = max(v, self.verbose)
+        # # set log level
+        # log_level = 0
+        # if self.verbose <= 0:
+        #     log_level = logging.WARN
+        # elif self.verbose == 1:
+        #     log_level = logging.INFO
+        # elif self.verbose >= 2:
+        #     log_level = logging.DEBUG
+        log_level = logging.DEBUG
         self.logger.setLevel(log_level)
 
     def _log_options(self) -> None:
@@ -162,12 +163,6 @@ class BuildPatomicCommand(Command):
         """Checks if CIBW is building for win32-x86"""
         env = os.environ.get("CIBW_MC_NAME")
         return type(env) is str and env.lower() == "win32-x86"
-
-    @staticmethod
-    def _cibw_check_macos_any() -> bool:
-        """Checks if CIBW is building for macos-*"""
-        env = os.environ.get("CIBW_MC_NAME")
-        return type(env) is str and env.lower().startswith("macos-")
 
     def get_patomic_libs(self, dir_path: pathlib.Path) -> [pathlib.Path]:
         """Returns a list of patomic shared library files found in dir_path"""
@@ -218,9 +213,6 @@ class BuildPatomicCommand(Command):
         if self._cibw_check_win32_x86():
             self.logger.info("Running under win32-x86 on CIBW - using '-A Win32'")
             cmd_config.append("-AWin32")
-        if self._cibw_check_macos_any():
-            self.logger.info("Running under macos-* on CIBW - adding cxx flag -Wno-deprecated-copy")
-            cmd_config.append('-DCMAKE_CXX_FLAGS_INIT="-Wno-deprecated-copy"')
         if self.cmake_args:
             self.logger.info(f"Appending CMake args: {self.cmake_args}")
             cmd_config.append(self.cmake_args)

@@ -7,6 +7,7 @@ import git
 import logging
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -269,7 +270,7 @@ class BuildPatomicCommand(Command):
                         except PermissionError:
                             self.logger.info(f"Could not remove file {str(elp)}")
                 self.logger.info(f"Copying over shared library file to: {str(self.dest_dir)}")
-                os.rename(str(lib_path), str(self.dest_dir / lib_path.name))
+                shutil.move(str(lib_path), str(self.dest_dir / lib_path.name))
                 # log result
                 self.logger.debug(f"Files in {str(self.dest_dir)}: {list(self.dest_dir.iterdir())}")
                 self.logger.info("Copied over file successfully")
